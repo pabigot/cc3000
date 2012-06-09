@@ -93,7 +93,8 @@ typedef struct _btspi_hdr
 #define 	eSPI_STATE_READ_EOT				 (8)
 
 
-#define SPI_BUFFER_SIZE						 (1700)
+#define SPI_BUFFER_SIZE						 (400)
+#warning SPI BUFFER SIZE ONLY 400 INSTEAD of 1700
 
 
 
