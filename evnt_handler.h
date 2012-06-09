@@ -85,6 +85,8 @@ typedef struct __attribute__ ((__packed__)) _bsd_accept_return_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _bsd_accept_return_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _bsd_accept_return_t
 #endif
 {
     long             iSocketDescriptor;
@@ -99,6 +101,8 @@ typedef struct __attribute__ ((__packed__)) _bsd_read_return_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _bsd_read_return_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _bsd_read_return_t
 #endif
 {
     long             iSocketDescriptor;
@@ -112,6 +116,8 @@ typedef struct __attribute__ ((__packed__)) _bsd_recvfrom_data_return_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _bsd_recvfrom_data_return_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _bsd_recvfrom_data_return_t
 #endif
 {
     long             iSocketDescriptor;
@@ -127,6 +133,8 @@ typedef struct __attribute__ ((__packed__)) _bsd_select_return_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _bsd_select_return_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _bsd_select_return_t
 #endif
 {
     long						iStatus;
@@ -141,6 +149,8 @@ typedef struct __attribute__ ((__packed__)) _bsd_getsockopt_return_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _bsd_getsockopt_return_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _bsd_getsockopt_return_t
 #endif
 {
 	unsigned char			ucOptValue[4];
@@ -153,6 +163,8 @@ typedef struct __attribute__ ((__packed__)) _bsd_gethostbyname_return_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _bsd_gethostbyname_return_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _bsd_gethostbyname_return_t
 #endif
 {
     long             retVal;

@@ -67,6 +67,8 @@ typedef struct __attribute__ ((__packed__)) _nvmem_create_entry_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _nvmem_create_entry_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _nvmem_create_entry_t
 #endif
 {
     unsigned long ulFileId;
@@ -79,6 +81,8 @@ typedef struct __attribute__ ((__packed__)) _nvmem_swap_entry_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _nvmem_swap_entry_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _nvmem_swap_entry_t
 #endif
 {
     unsigned long ulFileId_1;
@@ -91,6 +95,8 @@ typedef struct __attribute__ ((__packed__)) _nvmem_read_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _nvmem_read_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _nvmem_read_t
 #endif
 {
     unsigned long ulFileId;
@@ -104,6 +110,8 @@ typedef struct __attribute__ ((__packed__)) _nvmem_write_patch_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _nvmem_write_patch_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _nvmem_write_patch_t
 #endif
 {
     unsigned long ulFileId;
@@ -118,6 +126,8 @@ typedef struct __attribute__ ((__packed__)) _nvmem_write_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _nvmem_write_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _nvmem_write_t
 #endif
 {
     unsigned long ulFileId;

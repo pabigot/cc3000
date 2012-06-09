@@ -67,6 +67,8 @@ typedef struct __attribute__ ((__packed__)) _netapp_ipconfig_ret_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _netapp_ipconfig_ret_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _netapp_ipconfig_ret_args_t
 #endif
 {
     unsigned char aucIP[4];
@@ -85,6 +87,8 @@ typedef struct __attribute__ ((__packed__)) _netapp_pingreport_args
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _netapp_pingreport_args
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _netapp_pingreport_args
 #endif
 {
 	unsigned long packets_sent;

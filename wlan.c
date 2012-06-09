@@ -82,6 +82,8 @@ typedef struct __attribute__ ((__packed__)) _SimpleLink_Init_Start_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _SimpleLink_Init_Start_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _SimpleLink_Init_Start_t
 #endif
 {
     unsigned char ulPatchesConfiguration;
@@ -93,6 +95,8 @@ typedef struct __attribute__ ((__packed__)) _wlan_patch_conf_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _wlan_patch_conf_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _wlan_patch_conf_args_t
 #endif
 {
     unsigned long uiPatchToConfigure;
@@ -105,6 +109,8 @@ typedef struct __attribute__ ((__packed__)) _wlan_connect_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _wlan_connect_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _wlan_connect_args_t
 #endif
 {
     unsigned long ulSsidOffset;
@@ -124,6 +130,8 @@ typedef struct __attribute__ ((__packed__)) _set_connection_policy_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _wlan_ioctl_set_connection_policy_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _set_connection_policy_args_t
 #endif
 {
     unsigned long ulShouldConnectToOpenAp;
@@ -138,6 +146,8 @@ typedef struct __attribute__ ((__packed__)) _wlan_set_mask_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _wlan_set_mask_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _wlan_set_mask_args_t
 #endif
 {
     unsigned long mask;
@@ -149,6 +159,8 @@ typedef struct __attribute__ ((__packed__)) _wlan_add_profile_unsec_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _wlan_add_profile_unsec_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _wlan_add_profile_unsec_args_t
 #endif
 {
     unsigned long ulSecType;
@@ -165,6 +177,8 @@ typedef struct __attribute__ ((__packed__)) _wlan_add_profile_wep_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _wlan_add_profile_wep_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _wlan_add_profile_wep_args_t
 #endif
 {
     unsigned long ulSecType;
@@ -184,6 +198,8 @@ typedef struct __attribute__ ((__packed__)) _wlan_add_profile_wpa_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _wlan_add_profile_wpa_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _wlan_add_profile_wpa_args_t
 #endif
 {
     unsigned long ulSecType;
@@ -205,6 +221,8 @@ typedef struct __attribute__ ((__packed__)) _wlan_ioctl_del_profile_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _wlan_ioctl_del_profile_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _wlan_ioctl_del_profile_args_t
 #endif
 {
     unsigned long index;
@@ -216,6 +234,8 @@ typedef struct __attribute__ ((__packed__)) _wlan_ioctl_set_scan_params_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _wlan_ioctl_set_scan_params_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _wlan_ioctl_set_scan_params_args_t
 #endif
 {
 	unsigned long uiIntervalListOffset;
@@ -236,6 +256,8 @@ typedef struct __attribute__ ((__packed__)) _wlan_ioctl_get_scan_results_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _wlan_ioctl_get_scan_results_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _wlan_ioctl_get_scan_results_args_t
 #endif
 {
     unsigned long ulScanTimeout;
@@ -247,6 +269,8 @@ typedef struct __attribute__ ((__packed__)) _WLAN_San_Result_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _WLAN_San_Result_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _WLAN_San_Result_t
 #endif
 {
 	//

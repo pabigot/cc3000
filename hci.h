@@ -219,6 +219,8 @@ typedef struct __attribute__ ((__packed__)) _hci_flags_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _hci_flags_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _hci_flags_t
 #endif
 {
   char bIsBlocking: 1;
@@ -233,6 +235,8 @@ typedef struct __attribute__ ((__packed__)) _hci_cmnd_hdr_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _hci_cmnd_hdr_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _hci_cmnd_hdr_t
 #endif
 {
     unsigned char  ucType;
@@ -246,6 +250,8 @@ typedef struct __attribute__ ((__packed__)) _hci_patch_hdr_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct  _hci_patch_hdr_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _hci_patch_hdr_t
 #endif
 {
     unsigned char  ucType;
@@ -260,6 +266,8 @@ typedef struct __attribute__ ((__packed__)) _hci_hdr_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct  _hci_hdr_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _hci_hdr_t
 #endif
 {
     unsigned char  ucType;
@@ -273,6 +281,8 @@ typedef struct __attribute__ ((__packed__)) _hci_data_hdr_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct  _hci_data_hdr_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _hci_data_hdr_t
 #endif
 {
     unsigned char  ucType;
@@ -287,6 +297,8 @@ typedef struct __attribute__ ((__packed__)) _hci_data_cmd_hdr_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct  _hci_data_cmd_hdr_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _hci_data_cmd_hdr_t
 #endif
 {
     unsigned char  ucType;
@@ -301,6 +313,8 @@ typedef struct __attribute__ ((__packed__)) _hci_evnt_hdr_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _hci_evnt_hdr_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _hci_evnt_hdr_t
 #endif
 {
     unsigned char  ucType;

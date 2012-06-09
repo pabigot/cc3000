@@ -57,6 +57,8 @@ typedef struct __attribute__ ((__packed__)) _netapp_dhcp_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _netapp_dhcp_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _netapp_dhcp_args_t
 #endif
 {
     unsigned char aucIP[4];
@@ -72,6 +74,8 @@ typedef struct __attribute__ ((__packed__)) _netapp_set_timers_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _netapp_set_timers_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _netapp_set_timers_args_t
 #endif
 {
     unsigned char aucDHCP[4];
@@ -85,6 +89,8 @@ typedef struct __attribute__ ((__packed__)) _netapp_pingstart_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _netapp_pingstart_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _netapp_pingstart_args_t
 #endif
 {
     unsigned char ip[4];
@@ -99,6 +105,8 @@ typedef struct __attribute__ ((__packed__)) _netapp_set_debug_level_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _netapp_set_debug_level_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _netapp_set_debug_level_args_t
 #endif
 {
     unsigned long level;

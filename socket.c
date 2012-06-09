@@ -73,6 +73,8 @@ typedef struct __attribute__ ((__packed__)) _bsd_close_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _bsd_close_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _bsd_close_args_t
 #endif
 {
     long sd;
@@ -84,6 +86,8 @@ typedef struct __attribute__ ((__packed__)) _bsd_accept_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _bsd_accept_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _bsd_accept_args_t
 #endif
 {
     long sd;
@@ -95,6 +99,8 @@ typedef struct __attribute__ ((__packed__)) _bsd_bind_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _bsd_bind_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _bsd_bind_args_t
 #endif
 {
     long sd;
@@ -109,6 +115,8 @@ typedef struct __attribute__ ((__packed__)) _bsd_listen_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _bsd_listen_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _bsd_listen_args_t
 #endif
 {
     long sd;
@@ -121,6 +129,8 @@ typedef struct __attribute__ ((__packed__)) _bsd_gethostbyname_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _bsd_gethostbyname_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _bsd_gethostbyname_args_t
 #endif
 {
     long hostname_offset;
@@ -134,6 +144,8 @@ typedef struct __attribute__ ((__packed__)) _bsd_command_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _bsd_command_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _bsd_command_args_t
 #endif
 {
     long sd;
@@ -148,6 +160,8 @@ typedef struct __attribute__ ((__packed__)) _bsd_recvfrom_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _bsd_recvfrom_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _bsd_recvfrom_args_t
 #endif
 {
     long sd;
@@ -161,6 +175,8 @@ typedef struct __attribute__ ((__packed__)) _bsd_select_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _bsd_select_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _bsd_select_args_t
 #endif
 {
     long nfds;
@@ -181,6 +197,8 @@ typedef struct __attribute__ ((__packed__)) _bsd_getsocopt_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _bsd_getsocopt_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _bsd_getsocopt_args_t
 #endif
 {
     long sd;
@@ -194,6 +212,8 @@ typedef struct __attribute__ ((__packed__)) _bsd_setsocopt_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _bsd_setsocopt_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _bsd_setsocopt_args_t
 #endif
 {
     long sd;
@@ -210,6 +230,8 @@ typedef struct __attribute__ ((__packed__)) bsd_sendto_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _bsd_sendto_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) bsd_sendto_args_t
 #endif
 {
     long sd;
@@ -226,6 +248,8 @@ typedef struct __attribute__ ((__packed__)) _bsd_socket_args_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _bsd_socket_args_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _bsd_socket_args_t
 #endif
 {
     long domaint;

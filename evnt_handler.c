@@ -62,6 +62,8 @@ typedef struct __attribute__ ((__packed__)) _bsd_resp_params_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _bsd_resp_params_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _bsd_resp_params_t
 #endif
 {
     unsigned long sd;
@@ -74,6 +76,8 @@ typedef struct __attribute__ ((__packed__)) _handles_descriptor_t
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _handles_descriptor_t
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _handles_descriptor_t
 #endif
 {
     unsigned char handle;
