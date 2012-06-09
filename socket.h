@@ -553,26 +553,6 @@ extern int recvfrom(long sd, void *buf, long len, long flags, sockaddr *from,
  * \param[in] sd                socket handle
  * \param[in] buf               Points to a buffer containing 
  *       the message to be sent
- * \param[in] len             message size in bytes. Range: 1-1460 bytes
- *
- * \return   return the number of bytes transmitted, 0 if 
- *           timeout occurred or 1 if an error occurred
- *
- * \sa   send, sendto
- * \note   On this version, only blocking mode is supported.
- * \warning
- */
-
-
-
-/**
- * \brief write data to TCP socket
- * 
- * This function is used to transmit a message to another socket.
- *  
- * \param[in] sd                socket handle
- * \param[in] buf               Points to a buffer containing 
- *       the message to be sent
  * \param[in] len               message size in bytes. Range: 1-1460 bytes
  * \param[in] flags             Specifies the type of message 
  *       transmission. On this version, this parameter is not
