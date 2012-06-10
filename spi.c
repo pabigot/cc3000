@@ -56,9 +56,28 @@
 #define HI(value)               (((value) & 0xFF00) >> 8)
 #define LO(value)               ((value) & 0x00FF)
 
-#define ASSERT_CS()          (P1OUT &= ~BIT3)
-
-#define DEASSERT_CS()        (P1OUT |= BIT3)
+#if __MSP430FR5739__
+#define PXOUT_CS P1OUT
+#define BITX_CS BIT3
+#define PORTX_VECTOR_IRQ PORT2_VECTOR
+#define PXIFG_IRQ P2IFG
+#define BITX_IRQ BIT3
+#define PXIV_IRQ P2IV
+#define PXIE_IRQ P2IE
+#define PXIV_PXIFGY_IRQ P2IV_P2IFG3
+#elif __MSP430F5438__ || __MSP430F5438A__
+#define PXOUT_CS P3OUT
+#define BITX_CS BIT0
+#define PORTX_VECTOR_IRQ PORT1_VECTOR
+#define PXIFG_IRQ P1IFG
+#define BITX_IRQ BIT3
+#define PXIV_IRQ P1IV
+#define PXIE_IRQ P1IE
+#define PXIV_PXIFGY_IRQ P1IV_P1IFG3
+#else /* MCU */
+#endif /* MCU */
+#define ASSERT_CS()          (PXOUT_CS &= ~BITX_CS)
+#define DEASSERT_CS()        (PXOUT_CS |= BITX_CS)
 
 #define HEADERS_SIZE_EVNT       (SPI_HEADER_SIZE + 5)
 
@@ -98,8 +117,12 @@ typedef struct __attribute__ ((__packed__)) _btspi_hdr
 #define 	eSPI_STATE_READ_EOT				 (8)
 
 
+#if __MSP430FR5739__
 #define SPI_BUFFER_SIZE						 (400)
 #warning SPI BUFFER SIZE ONLY 400 INSTEAD of 1700
+#else /* MCU */
+#define SPI_BUFFER_SIZE						 (1700)
+#endif /* MCU */
 
 
 
@@ -169,8 +192,10 @@ char spi_buffer[SPI_BUFFER_SIZE];
 __no_init char spi_buffer[SPI_BUFFER_SIZE];
 
 #elif __GNUC__
-__attribute__((__section__(".rodata"))) char spi_buffer[SPI_BUFFER_SIZE];
-
+#if __MSP430FR5739__
+__attribute__((__section__(".rodata")))
+#endif
+char spi_buffer[SPI_BUFFER_SIZE];
 #endif
 
 
@@ -184,7 +209,10 @@ unsigned char wlan_tx_buffer[SPI_BUFFER_SIZE];
 __no_init unsigned char wlan_tx_buffer[SPI_BUFFER_SIZE];
 
 #elif __GNUC__
-__attribute__((__section__(".rodata"))) unsigned char wlan_tx_buffer[SPI_BUFFER_SIZE];
+#if __MSP430FR5739__
+__attribute__((__section__(".rodata")))
+#endif
+unsigned char wlan_tx_buffer[SPI_BUFFER_SIZE];
 #endif
 //*****************************************************************************
 // 
@@ -202,7 +230,7 @@ __attribute__((__section__(".rodata"))) unsigned char wlan_tx_buffer[SPI_BUFFER_
 void
 SpiCleanGPIOISR(void)
 {
-	P2IFG &= ~BIT3;
+	PXIFG_IRQ &= ~BITX_IRQ;
 }
  
 
@@ -567,7 +595,7 @@ SpiReadDataCont(void)
 void 
 SpiPauseSpi(void)
 {
-	P2IE &= ~BIT3;
+	PXIE_IRQ &= ~BITX_IRQ;
 }
 
 
@@ -586,7 +614,7 @@ SpiPauseSpi(void)
 void 
 SpiResumeSpi(void)
 {
-	P2IE |= BIT3;
+	PXIE_IRQ |= BITX_IRQ;
 }
 
 
@@ -629,13 +657,13 @@ SpiTriggerRxProcessing(void)
 //!          it set the corresponding /CS in active state.
 // 
 //*****************************************************************************
-#pragma vector=PORT2_VECTOR
+#pragma vector=PORTX_VECTOR_IRQ
 __interrupt void IntSpiGPIOHandler(void)
 {
 	//__bic_SR_register(GIE);
-	switch(__even_in_range(P2IV,P2IV_P2IFG3))
+	switch(__even_in_range(PXIV_IRQ,PXIV_PXIFGY_IRQ))
     {
-	  case P2IV_P2IFG3:
+	  case PXIV_PXIFGY_IRQ:
 		if (sSpiInformation.ulSpiState == eSPI_STATE_POWERUP)
 		{
 			/* This means IRQ line was low call a callback of HCI Layer to inform on event */
