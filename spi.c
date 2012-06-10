@@ -136,7 +136,7 @@ typedef struct
 }tSpiInformation;
 
 
-tSpiInformation sSpiInformation;
+volatile tSpiInformation sSpiInformation;
 
 //
 // Static buffer for 5 bytes of SPI HEADER
