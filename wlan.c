@@ -47,7 +47,7 @@
 #include "evnt_handler.h"
 #include "os.h"
 
-sSimplLinkInformation tSLInformation;
+volatile sSimplLinkInformation tSLInformation;
 
 /* patches type */
 #define PATCHES_HOST_TYPE_WLAN_DRIVER   0x01
