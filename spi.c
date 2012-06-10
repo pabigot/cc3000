@@ -46,6 +46,9 @@
 #include "evnt_handler.h"
 #include <msp430.h>
 
+#if __GNUC__
+#define __even_in_range(_V,_L) (_V)
+#endif /* __GNUC__ */
 
 #define READ                    3
 #define WRITE                   1
@@ -73,6 +76,8 @@ typedef struct __attribute__ ((__packed__)) _btspi_hdr
 #elif __IAR_SYSTEMS_ICC__
 #pragma pack(1)
 typedef struct _btspi_hdr
+#elif __GNUC__
+typedef struct __attribute__ ((__packed__)) _btspi_hdr
 #endif
 {
     unsigned char   cmd;
@@ -162,6 +167,10 @@ char spi_buffer[SPI_BUFFER_SIZE];
 #elif __IAR_SYSTEMS_ICC__
 #pragma location = "FRAM_DATA"
 __no_init char spi_buffer[SPI_BUFFER_SIZE];
+
+#elif __GNUC__
+__attribute__((__section__(".rodata"))) char spi_buffer[SPI_BUFFER_SIZE];
+
 #endif
 
 
@@ -173,6 +182,9 @@ unsigned char wlan_tx_buffer[SPI_BUFFER_SIZE];
 #elif __IAR_SYSTEMS_ICC__
 #pragma location = "FRAM_DATA"
 __no_init unsigned char wlan_tx_buffer[SPI_BUFFER_SIZE];
+
+#elif __GNUC__
+__attribute__((__section__(".rodata"))) unsigned char wlan_tx_buffer[SPI_BUFFER_SIZE];
 #endif
 //*****************************************************************************
 // 
