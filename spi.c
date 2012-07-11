@@ -40,10 +40,10 @@
 //! @{
 //
 //*****************************************************************************
-#include "hci.h"
-#include "spi.h"
-#include "os.h"
-#include "evnt_handler.h"
+#include <cc3000/hci.h>
+#include <cc3000/spi.h>
+#include <cc3000/os.h>
+#include <cc3000/evnt_handler.h>
 #include <msp430.h>
 
 #if __GNUC__
