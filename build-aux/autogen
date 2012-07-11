@@ -1,0 +1,10 @@
+#!/bin/sh
+#
+# Script to recreate all the autotools-related files that we keep around
+
+mkdir -p m4 build-aux
+aclocal -I m4 --force
+libtoolize --install --force --copy
+automake --add-missing --force --copy
+autoreconf
+#rm -rf autom4te.cache
