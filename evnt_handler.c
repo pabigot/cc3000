@@ -220,7 +220,7 @@ hci_event_handler(void *pRetParams, unsigned char *from, unsigned char *fromlen)
 				    	case HCI_CMND_READ_BUFFER_SIZE:
 						{
 							tSLInformation.usNumberOfFreeBuffers = *pucReceivedParams;
-							memcpy(&tSLInformation.usSlBufferLength, (pucReceivedParams + 1), sizeof(tSLInformation.usSlBufferLength));
+							memcpy((void *)&tSLInformation.usSlBufferLength, (pucReceivedParams + 1), sizeof(tSLInformation.usSlBufferLength));
 				    	}
 						break;
 
