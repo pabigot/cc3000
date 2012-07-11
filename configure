@@ -637,6 +637,8 @@ GREP
 SED
 LIBTOOL
 MEMORY_MODELS
+WITH_GCC_FALSE
+WITH_GCC_TRUE
 am__fastdepCC_FALSE
 am__fastdepCC_TRUE
 CCDEPMODE
@@ -653,6 +655,8 @@ CPPFLAGS
 LDFLAGS
 CFLAGS
 CC
+WITH_MSP430_FALSE
+WITH_MSP430_TRUE
 am__untar
 am__tar
 AMTAR
@@ -2735,6 +2739,16 @@ am__tar='${AMTAR} chof - "$$tardir"'; am__untar='${AMTAR} xf -'
 
 
 
+# Tell Makefile if we're building for the MSP430.
+ if test "${host_alias}" = "msp430"; then
+  WITH_MSP430_TRUE=
+  WITH_MSP430_FALSE='#'
+else
+  WITH_MSP430_TRUE='#'
+  WITH_MSP430_FALSE=
+fi
+
+
 # Need a C compiler.  We're building a library, and for some targets
 # (like msp430) we may not be providing the -mmcu= option that's
 # required to be able to do a non-relocatable link.  So don't ask
@@ -3794,6 +3808,14 @@ else
   am__fastdepCC_FALSE=
 fi
 
+
+ if test "${GCC}" = "yes"; then
+  WITH_GCC_TRUE=
+  WITH_GCC_FALSE='#'
+else
+  WITH_GCC_TRUE='#'
+  WITH_GCC_FALSE=
+fi
 
 
 # Optionally build for multiple memory models for msp430
@@ -11459,12 +11481,20 @@ else
   am__EXEEXT_FALSE=
 fi
 
+if test -z "${WITH_MSP430_TRUE}" && test -z "${WITH_MSP430_FALSE}"; then
+  as_fn_error $? "conditional \"WITH_MSP430\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 if test -z "${AMDEP_TRUE}" && test -z "${AMDEP_FALSE}"; then
   as_fn_error $? "conditional \"AMDEP\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${am__fastdepCC_TRUE}" && test -z "${am__fastdepCC_FALSE}"; then
   as_fn_error $? "conditional \"am__fastdepCC\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${WITH_GCC_TRUE}" && test -z "${WITH_GCC_FALSE}"; then
+  as_fn_error $? "conditional \"WITH_GCC\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 

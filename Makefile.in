@@ -564,6 +564,12 @@ uninstall-am: uninstall-cc3000LTLIBRARIES uninstall-cc3000incHEADERS
 	uninstall-cc3000incHEADERS
 
 
+# For MSP430, optimize for size
+@WITH_MSP430_TRUE@ AM_CFLAGS += -Os
+
+# If GCC, support -gc-sections at link time
+@WITH_GCC_TRUE@ AM_CFLAGS += -ffunction-sections -fdata-sections
+
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
