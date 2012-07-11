@@ -39,8 +39,8 @@
 //
 //*****************************************************************************
 
+#include <string.h>
 #include <cc3000/cc3000_common.h>
-#include <cc3000/string.h>
 #include <cc3000/hci.h>
 #include <cc3000/evnt_handler.h>
 #include <cc3000/wlan.h>
