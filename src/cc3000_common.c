@@ -39,10 +39,10 @@
 //
 //*****************************************************************************
 
-#include "cc3000_common.h"
-#include "socket.h"
-#include "wlan.h"
-#include "evnt_handler.h"
+#include <cc3000/cc3000_common.h>
+#include <cc3000/socket.h>
+#include <cc3000/wlan.h>
+#include <cc3000/evnt_handler.h>
 
 //*****************************************************************************
 //

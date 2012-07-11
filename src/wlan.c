@@ -40,12 +40,12 @@
 //
 //*****************************************************************************
 #include <string.h>
-#include "wlan.h"
-#include "hci.h"
-#include "spi.h"
-#include "socket.h"
-#include "evnt_handler.h"
-#include "os.h"
+#include <cc3000/wlan.h>
+#include <cc3000/hci.h>
+#include <cc3000/spi.h>
+#include <cc3000/socket.h>
+#include <cc3000/evnt_handler.h>
+#include <cc3000/os.h>
 
 volatile sSimplLinkInformation tSLInformation;
 

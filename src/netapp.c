@@ -33,11 +33,11 @@
 *
 *****************************************************************************/
 #include <string.h>
-#include "netapp.h"
-#include "hci.h"
-#include "socket.h"
-#include "evnt_handler.h"
-#include "nvmem.h"
+#include <cc3000/netapp.h>
+#include <cc3000/hci.h>
+#include <cc3000/socket.h>
+#include <cc3000/evnt_handler.h>
+#include <cc3000/nvmem.h>
 
 #define MIN_TIMER_VAL_SECONDS      20
 #define MIN_TIMER_SET(t)    if ((0 != t) && (t < MIN_TIMER_VAL_SECONDS)) \
