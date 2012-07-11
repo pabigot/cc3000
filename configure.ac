@@ -4,7 +4,7 @@
 # automake --add-missing --copy
 
 AC_INIT([cc3000],[0.1.0])
-AC_CONFIG_SRCDIR([cc3000_common.h])
+AC_CONFIG_SRCDIR([include/cc3000/cc3000_common.h])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
 AM_MAINTAINER_MODE
@@ -64,6 +64,6 @@ LT_INIT([disable-shared])
 # actually reference it.
 AC_CONFIG_HEADERS([config.h])
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile include/cc3000/Makefile])
 
 AC_OUTPUT
