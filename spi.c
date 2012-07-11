@@ -74,6 +74,15 @@
 #define PXIV_IRQ P1IV
 #define PXIE_IRQ P1IE
 #define PXIV_PXIFGY_IRQ P1IV_P1IFG3
+#elif __MSP430F5529__
+#define PXOUT_CS P2OUT
+#define BITX_CS BIT6
+#define PORTX_VECTOR_IRQ PORT2_VECTOR
+#define PXIFG_IRQ P2IFG
+#define BITX_IRQ BIT4
+#define PXIV_IRQ P2IV
+#define PXIE_IRQ P2IE
+#define PXIV_PXIFGY_IRQ P2IV_P2IFG4
 #else /* MCU */
 #endif /* MCU */
 #define ASSERT_CS()          (PXOUT_CS &= ~BITX_CS)

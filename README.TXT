@@ -12,3 +12,9 @@ Instruments code in this directory are intended to be public domain.
 The spi.c file should be compiled for your target platform and linked with
 the libcc3000 produced from the master branch of this repository along with
 your application code.
+
+This version has configuration for the following MCUs:
+
+* MSP430FR5739
+* MSP430F5438A
+* MSP430F5529
