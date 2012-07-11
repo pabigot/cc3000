@@ -11,12 +11,16 @@ AM_MAINTAINER_MODE
 AC_CANONICAL_SYSTEM
 AM_INIT_AUTOMAKE([-Wall -Werror foreign no-define no-dist])
 
+# Tell Makefile if we're building for the MSP430.
+AM_CONDITIONAL([WITH_MSP430], [test "${host_alias}" = "msp430"])
+
 # Need a C compiler.  We're building a library, and for some targets
 # (like msp430) we may not be providing the -mmcu= option that's
 # required to be able to do a non-relocatable link.  So don't ask
 # AC_PROG_CC to check whether executables can be built.
 AC_NO_EXECUTABLES
 AC_PROG_CC
+AM_CONDITIONAL([WITH_GCC], [test "${GCC}" = "yes"])
 
 # Optionally build for multiple memory models for msp430
 ENABLE_MEMORY_MODELS=no
