@@ -53,91 +53,8 @@
 //
 //*****************************************************************************
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-//packed is used for preventing padding before sending the structure over the SPI                       ///
-//for every IDE, exist different syntax:          1.   __MSP430FR5739__ for CCS v5                      ///
-//                                                2.  __IAR_SYSTEMS_ICC__ for IAR Embedded Workbench    ///
-// THIS COMMENT IS VALID FOR EVERY STRUCT DEFENITION!                                                   ///
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-#ifdef __CCS__
-typedef struct __attribute__ ((__packed__)) _nvmem_create_entry_t
-#elif __IAR_SYSTEMS_ICC__
-#pragma pack(1)
-typedef struct _nvmem_create_entry_t
-#elif __GNUC__
-typedef struct __attribute__ ((__packed__)) _nvmem_create_entry_t
-#endif
-{
-    unsigned long ulFileId;
-    unsigned long ulNewLen;
-}nvmem_create_entry_t;
-
-
-#ifdef __CCS__
-typedef struct __attribute__ ((__packed__)) _nvmem_swap_entry_t
-#elif __IAR_SYSTEMS_ICC__
-#pragma pack(1)
-typedef struct _nvmem_swap_entry_t
-#elif __GNUC__
-typedef struct __attribute__ ((__packed__)) _nvmem_swap_entry_t
-#endif
-{
-    unsigned long ulFileId_1;
-    unsigned long ulFileId_2;
-}nvmem_swap_entry_t;
-
-
-#ifdef __CCS__
-typedef struct __attribute__ ((__packed__)) _nvmem_read_t
-#elif __IAR_SYSTEMS_ICC__
-#pragma pack(1)
-typedef struct _nvmem_read_t
-#elif __GNUC__
-typedef struct __attribute__ ((__packed__)) _nvmem_read_t
-#endif
-{
-    unsigned long ulFileId;
-    unsigned long ulLength;
-    unsigned long ulOffset; 
-}nvmem_read_t;
-
-
-#ifdef __CCS__
-typedef struct __attribute__ ((__packed__)) _nvmem_write_patch_t
-#elif __IAR_SYSTEMS_ICC__
-#pragma pack(1)
-typedef struct _nvmem_write_patch_t
-#elif __GNUC__
-typedef struct __attribute__ ((__packed__)) _nvmem_write_patch_t
-#endif
-{
-    unsigned long ulFileId;
-    unsigned long ulStart;
-	unsigned long ulAddress;
-    unsigned long ulLength;
-}nvmem_write_patch_t;
-
-
-#ifdef __CCS__
-typedef struct __attribute__ ((__packed__)) _nvmem_write_t
-#elif __IAR_SYSTEMS_ICC__
-#pragma pack(1)
-typedef struct _nvmem_write_t
-#elif __GNUC__
-typedef struct __attribute__ ((__packed__)) _nvmem_write_t
-#endif
-{
-    unsigned long ulFileId;
-    unsigned long ulOffset;
-    unsigned long ulLength;
-    unsigned long ulEntryOffset;
-}nvmem_write_t;
-
-
-
+#define NVMEM_READ_PARAMS_LEN 	(12)
+#define NVMEM_WRITE_PARAMS_LEN  (16)
 /*****************************************************************************
  * \brief Read data from nvmem
  *
@@ -168,28 +85,23 @@ signed long
 nvmem_read(unsigned long ulFileId, unsigned long ulLength, unsigned long ulOffset, unsigned char *buff)
 {
     unsigned char ucStatus = 0xFF;
-    unsigned short arg_len;
     unsigned char *ptr;
-    nvmem_read_t *args;
-
-    arg_len = 0;
+    unsigned char *args;
     
     ptr = tSLInformation.pucTxCommandBuffer;
-    args = (nvmem_read_t *)(ptr + HEADERS_SIZE_CMD);
+    args = (ptr + HEADERS_SIZE_CMD);
     
     //
     // Fill in HCI packet structure
     //
-    arg_len = sizeof(nvmem_read_t);
-
-    args->ulFileId = ulFileId;
-    args->ulLength = ulLength;
-    args->ulOffset = ulOffset;
+	args = UINT32_TO_STREAM(args, ulFileId);
+	args = UINT32_TO_STREAM(args, ulLength);
+	args = UINT32_TO_STREAM(args, ulOffset);
 
 	//
     // Initiate a HCI command
     //
-	hci_command_send(HCI_CMND_NVMEM_READ, ptr, arg_len);
+	hci_command_send(HCI_CMND_NVMEM_READ, ptr, NVMEM_READ_PARAMS_LEN);
 
     SimpleLinkWaitEvent(HCI_CMND_NVMEM_READ, &ucStatus);
 
@@ -240,38 +152,163 @@ nvmem_write(unsigned long ulFileId, unsigned long ulLength, unsigned long ulEntr
             unsigned char *buff)
 {
     long iRes;
-    unsigned short arg_len; 
     unsigned char *ptr;
-    nvmem_write_t *args;
+    unsigned char *args;
     
     iRes = EFAIL;
-    arg_len = 0;
 
     ptr = tSLInformation.pucTxCommandBuffer;
-    args = (nvmem_write_t *)(ptr + SPI_HEADER_SIZE + sizeof(hci_data_cmd_hdr_t));
+    args = (ptr + SPI_HEADER_SIZE + HCI_DATA_CMD_HEADER_SIZE);
 
     // Fill in HCI packet structure
-
-    arg_len = sizeof(nvmem_write_t);
-
-    args->ulFileId = ulFileId;
-    /* The 'args->ulOffset' parameter is used by receiving side for calculating beginning of data in the message.
-       Data starts after 'args' parameters' end, i.e. after 12 bytes:
-       ulOffset = sizeof(args->ulOffset) + sizeof(args->ulLength) + sizeof(args->entry_ulOffset) */
-    args->ulOffset = 12;
-	args->ulLength  = ulLength;
-    args->ulEntryOffset = ulEntryOffset;
-	memcpy((ptr + SPI_HEADER_SIZE + sizeof(hci_data_cmd_hdr_t) + sizeof(nvmem_write_t)),
+	args = UINT32_TO_STREAM(args, ulFileId);
+	args = UINT32_TO_STREAM(args, 12);
+	args = UINT32_TO_STREAM(args, ulLength);
+	args = UINT32_TO_STREAM(args, ulEntryOffset);
+	
+	memcpy((ptr + SPI_HEADER_SIZE + HCI_DATA_CMD_HEADER_SIZE + NVMEM_WRITE_PARAMS_LEN),
 			buff,
 			ulLength);
 
     // Initiate a HCI command but it will come on data channel
-    hci_data_command_send(HCI_CMND_NVMEM_WRITE, ptr, arg_len, ulLength);
+    hci_data_command_send(HCI_CMND_NVMEM_WRITE, ptr, NVMEM_WRITE_PARAMS_LEN, ulLength);
 	
 	SimpleLinkWaitEvent(HCI_EVNT_NVMEM_WRITE, &iRes);
 
     return(iRes);
 }
+
+
+
+/*****************************************************************************
+ * \brief Write MAC address.
+ *  
+ * Write MAC address to EEPROM. 
+ * mac address as appears over the air (OUI first)
+ *  
+ * \param[in] mac  mac address:\n
+ *
+ * \return	  on succes 0, error otherwise.
+ *
+ * \sa
+ * \note
+ * \warning
+ *
+ *****************************************************************************/
+unsigned char nvmem_set_mac_address(unsigned char *mac)
+{
+	return  nvmem_write(NVMEM_MAC_FILEID, MAC_ADDR_LEN, 0, mac);
+}
+
+
+/*****************************************************************************
+ * \brief Read MAC address.
+ *  
+ * Read MAC address from EEPROM. 
+ * mac address as appears over the air (OUI first)
+ *  
+ * \param[out] mac  mac address:\n
+ *
+ * \return	  on succes 0, error otherwise.
+ *
+ * \sa
+ * \note
+ * \warning
+ *
+ *****************************************************************************/
+unsigned char nvmem_get_mac_address(unsigned char *mac)
+{
+	return  nvmem_read(NVMEM_MAC_FILEID, MAC_ADDR_LEN, 0, mac);
+}
+
+
+/*****************************************************************************
+ * \brief Write data to nvmem.
+ *  
+ * program a patch to a specific file ID. 
+ * The SP data is assumed to be organized in 2-dimentional.
+ * Each line is 150 bytes long.
+ * Actual programming is applied in 150 bytes portions (SP_PORTION_SIZE).
+ *  
+ * \param[in] ulFileId   nvmem file id:\n
+ * NVMEM_WLAN_DRIVER_SP_FILEID, 
+ * NVMEM_WLAN_FW_SP_FILEID,
+ * \param[in] spLength    number of bytes to write   
+ * \param[in] spData      SP data to write 
+ *
+ * \return	  on succes 0, error otherwise.
+ *
+ * \sa
+ * \note
+ * \warning
+ *
+ *****************************************************************************/
+unsigned char nvmem_write_patch(unsigned long ulFileId, unsigned long spLength, const unsigned char *spData)
+{
+	unsigned char 	status = 0;
+	unsigned short	offset = 0;
+	unsigned char*      spDataPtr = (unsigned char*)spData;
+
+	while ((status == 0) && (spLength >= SP_PORTION_SIZE))
+	{
+		status = nvmem_write(ulFileId, SP_PORTION_SIZE, offset, spDataPtr);
+		offset += SP_PORTION_SIZE;
+		spLength -= SP_PORTION_SIZE;
+		spDataPtr += SP_PORTION_SIZE;
+	}
+
+	if (status !=0)
+	{
+		// NVMEM error occured
+		return status;
+	}
+
+	if (spLength != 0)
+	{
+		// if reached here, a reminder is left
+		status = nvmem_write(ulFileId, spLength, offset, spDataPtr);
+	}
+
+	return status;
+}
+
+
+
+/*****************************************************************************
+ * \brief Read patch version.
+ *  
+ * read package version (WiFi FW patch, driver-supplicant-NS patch, bootloader patch)
+ *  
+ * \param[out] patchVer    first number indicates package ID and the second number indicates package build number   
+ *
+ * \return	  on succes 0, error otherwise.
+ *
+ * \sa
+ * \note
+ * \warning
+ *
+ *****************************************************************************/
+#ifndef CC3000_TINY_DRIVER
+unsigned char nvmem_read_sp_version(unsigned char* patchVer)
+{
+    unsigned char *ptr;
+    unsigned char	retBuf[5];	// 1st byte is the status and the rest is the SP version
+    
+    ptr = tSLInformation.pucTxCommandBuffer;
+    
+    //
+    // Initiate a HCI command
+    //
+	hci_command_send(HCI_CMND_READ_SP_VERSION, ptr, 0);	// no args are required
+
+    SimpleLinkWaitEvent(HCI_CMND_READ_SP_VERSION, retBuf);
+
+	*patchVer = retBuf[3];			// package ID
+	*(patchVer+1) = retBuf[4];		// package build number
+
+    return(retBuf[0]);
+}
+#endif
 
 //*****************************************************************************
 //

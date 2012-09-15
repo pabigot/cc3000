@@ -36,6 +36,7 @@
 #define	__WLAN_H__
 
 #include <cc3000/cc3000_common.h>
+
 //*****************************************************************************
 //
 // If building with a C++ compiler, make all of the definitions in this header
@@ -57,31 +58,7 @@ extern "C" {
 //
 //*****************************************************************************
 
-/**
- * \brief Configure patches 
- *
- * Configure patches source. Three types of patches: wlan 
- * driver, wlan FW and wlan bootloadr. For each one three 
- * options, get from eeprom,  get from host or disable the patch
- *  
- * \param[in]   uiPatchesToConfigure patch type: 
- *       PATCHES_HOST_TYPE_WLAN_DRIVER,
- *       PATCHES_HOST_TYPE_WLAN_FW or
- *       PATCHES_HOST_TYPE_BOOTLOADER
- * \param[in]   uiSource select patch source: 
- *       PATCHES_SOURCE_EEPROM (eeprom), PATCHES_SOURCE_HOST
- *       (host) or PATCHES_SOURCE_NONE (disable)
- * 
- *  
- * \return     None
- *
- * \sa          
- * \note        
- * \warning     
- */
 
-
-extern void wlan_ConfigurePatches(unsigned long ulPatchesToConfigure, unsigned long ulSource);
 
 
 /**
@@ -193,9 +170,13 @@ extern void wlan_stop(void);
  * \note        
  * \warning     
  */
+#ifndef CC3000_TINY_DRIVER
 extern long wlan_connect(unsigned long ulSecType, char *ssid, long ssid_len,
                         unsigned char *bssid, unsigned char *key, long key_len);
+#else
+extern long wlan_connect(char *ssid, long ssid_len);
 
+#endif
 
 /**
  * \brief wlan disconnect
@@ -247,7 +228,7 @@ extern long wlan_disconnect(void);
  */
 
 
-
+#ifndef CC3000_TINY_DRIVER
 extern long wlan_add_profile(unsigned long ulSecType, unsigned char* ucSsid,
 										 unsigned long ulSsidLen, 
 										 unsigned char *ucBssid,
@@ -258,7 +239,7 @@ extern long wlan_add_profile(unsigned long ulSecType, unsigned char* ucSsid,
                                          unsigned char* ucPf_OrKey,
                                          unsigned long ulPassPhraseLen);
 
-
+#endif
 
 /**
  * \brief Delete WLAN profile
@@ -291,6 +272,7 @@ extern long wlan_ioctl_del_profile(unsigned long ulIndex);
  *       HCI_EVNT_WLAN_UNSOL_DHCP dhcp report\n
  *       HCI_EVNT_WLAN_ASYNC_PING_REPORT ping report\n
  *       HCI_EVNT_WLAN_KEEPALIVE keepalive\n
+ *	   HCI_EVNT_WLAN_TX_COMPLETE - disable information on end of transmission\n
  *  
  * \On success, zero is returned. On error, -1 is 
  *            returned       
@@ -370,17 +352,19 @@ extern long wlan_ioctl_set_connection_policy(
  * The scan results are returned one by one, and each entry represents a single AP found in the area. The following is a format of hte scan result:
  *	- 4 Bytes: number of networks found
  *	- 4 Bytes: The status of the scan: 0 - agged results, 1 - results valid, 2 - no results
- *	- 44 bytes: Result entry, where the bytes are arranged as follows:
- *				- 4 bytes isValid - is result valid or not
- *				- 4 bytes rssi 			- RSSI value;	 
- *				- 4 bytes: securityMode - security mode of the AP: 0 - Open, 1 - WEP, 2 WPA, 3 WPA2
- *				- 4 bytes: SSID name length
+ *  - 56 bytes: Result entry, where the bytes are arranged as
+ *    follows:
+ *				- 1 bytes isValid - is result valid or not
+ *				- 7 bytes rssi 			- RSSI value;	 
+ *				- 2 bytes: securityMode - security mode of the AP: 0 - Open, 1 - WEP, 2 WPA, 3 WPA2
+ *				- 6 bytes: SSID name length
  *				- 2 bytes: the time at which the entry has entered into scans result table
  *				- 32 bytes: SSID name
  *				- 6 bytes:	BSSID
  *  
  * \param[in] scan_timeout  
- * \param[out] ucResults  scan resault (WLAN_San_Result_t)
+ * \param[out] ucResults  scan resault 
+ *       (_wlan_full_scan_results_args_t)
  *  
  * \return  On success, zero is returned. On error, -1 is 
  *            returned 
@@ -400,7 +384,8 @@ extern long wlan_ioctl_get_scan_results(unsigned long ulScanTimeout,
  * start and stop scan procedure. 
  * Set scan parameters 
  *  
- * \param[in] uiEnable       start/stop scan (1=start,0=stop). 
+ * \param[in] uiEnable       start/stop scan (1=start scan with default interval value of 10 min. in order to set a diffrent scan interval value apply the value in miliseconds. minimum 1 second. 
+ *                                            0=stop).  Wlan reset (wlan_stop()  wlan_start()) is needed when changing scan interval value.
  *       Saved: No 
  * \param[in] uiMinDwellTime   minimum dwell time value to be 
  *       used for each channel, in millisconds. Saved: yes

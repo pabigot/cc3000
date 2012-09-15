@@ -109,24 +109,15 @@ extern "C" {
 extern signed long nvmem_read(unsigned long file_id, unsigned long length, unsigned long offset, unsigned char *buff);
 
 
+
+
 /*****************************************************************************
- * \brief Write data to nvmem.
+ * \brief Write MAC address.
  *  
- * writes data to file referred by the ulFileId parameter. 
- * Writes data to file  ulOffset till ulLength. The file id will be 
- * marked invalid till the write is done. The file entry doesn't
- * need to be valid - only allocated.
+ * Write MAC address to EEPROM. 
+ * mac address as appears over the air (OUI first)
  *  
- * \param[in] ulFileId   nvmem file id:\n
- * NVMEM_NVS_FILEID, NVMEM_NVS_SHADOW_FILEID,
- * NVMEM_WLAN_CONFIG_FILEID, NVMEM_WLAN_CONFIG_SHADOW_FILEID,
- * NVMEM_WLAN_DRIVER_SP_FILEID, NVMEM_WLAN_FW_SP_FILEID,
- * NVMEM_MAC_FILEID, NVMEM_FRONTEND_VARS_FILEID,
- * NVMEM_IP_CONFIG_FILEID, NVMEM_IP_CONFIG_SHADOW_FILEID,
- * NVMEM_BOOTLOADER_SP_FILEID or NVMEM_RM_FILEID.
- * \param[in] ulLength    number of bytes to write   
- * \param[in] ulEntryOffset  offset in file to start write operation from    
- * \param[in] buff      data to write 
+ * \param[in] mac  mac address:\n
  *
  * \return	  on succes 0, error otherwise.
  *
@@ -135,10 +126,67 @@ extern signed long nvmem_read(unsigned long file_id, unsigned long length, unsig
  * \warning
  *
  *****************************************************************************/
-extern signed long nvmem_write(unsigned long file_id, unsigned long length, unsigned long entry_offset, 
-            unsigned char *buff);
+extern	unsigned char nvmem_set_mac_address(unsigned char *mac);
 
 
+/*****************************************************************************
+ * \brief Read MAC address.
+ *  
+ * Read MAC address from EEPROM. 
+ * mac address as appears over the air (OUI first)
+ *  
+ * \param[out] mac  mac address:\n
+ *
+ * \return	  on succes 0, error otherwise.
+ *
+ * \sa
+ * \note
+ * \warning
+ *
+ *****************************************************************************/
+extern	unsigned char nvmem_get_mac_address(unsigned char *mac);
+
+
+/*****************************************************************************
+ * \brief Write data to nvmem.
+ *  
+ * program a patch to a specific file ID. 
+ * The SP data is assumed to be continuous in memory. 
+ * Actual programming is applied in 150 bytes portions (SP_PORTION_SIZE).
+ *  
+ * \param[in] ulFileId   nvmem file id:\n
+ * NVMEM_WLAN_DRIVER_SP_FILEID, 
+ * NVMEM_WLAN_FW_SP_FILEID,
+ * \param[in] spLength    number of bytes to write   
+ * \param[in] spData      SP data to write 
+ *
+ * \return	  on succes 0, error otherwise.
+ *
+ * \sa
+ * \note
+ * \warning
+ *
+ *****************************************************************************/
+extern	unsigned char nvmem_write_patch(unsigned long ulFileId, unsigned long spLength, const unsigned char *spData);
+
+
+/*****************************************************************************
+ * \brief Read patch version.
+ *  
+ * read package version (WiFi FW patch, driver-supplicant-NS patch, bootloader patch)
+ *  
+ * \param[out] patchVer    first number indicates package ID and the second number indicates package build number   
+ *
+ * \return	  on succes 0, error otherwise.
+ *
+ * \sa
+ * \note
+ * \warning
+ *
+ *****************************************************************************/
+#ifndef CC3000_TINY_DRIVER 
+extern	unsigned char nvmem_read_sp_version(unsigned char* patchVer);
+#endif
 
 //*****************************************************************************
 //

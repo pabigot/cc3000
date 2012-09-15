@@ -53,23 +53,16 @@ extern "C" {
 //
 //*****************************************************************************
 
+typedef struct _netapp_dhcp_ret_args_t
+{
+    unsigned char aucIP[4];
+	unsigned char aucSubnetMask[4];
+	unsigned char aucDefaultGateway[4];
+	unsigned char aucDHCPServer[4];
+	unsigned char aucDNSServer[4];
+}tNetappDhcpParams;
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-//packed is used for preventing padding before sending the structure over the SPI                       ///
-//for every IDE, exist different syntax:          1.   __MSP430FR5739__ for CCS v5                      ///
-//                                                2.  __IAR_SYSTEMS_ICC__ for IAR Embedded Workbench    ///
-// THIS COMMENT IS VALID FOR EVERY STRUCT DEFENITION!                                                   ///
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-#ifdef __CCS__
-typedef struct __attribute__ ((__packed__)) _netapp_ipconfig_ret_args_t
-#elif __IAR_SYSTEMS_ICC__
-#pragma pack(1)
 typedef struct _netapp_ipconfig_ret_args_t
-#elif __GNUC__
-typedef struct __attribute__ ((__packed__)) _netapp_ipconfig_ret_args_t
-#endif
 {
     unsigned char aucIP[4];
 	unsigned char aucSubnetMask[4];
@@ -82,14 +75,7 @@ typedef struct __attribute__ ((__packed__)) _netapp_ipconfig_ret_args_t
 
 
 /*Ping send report parameters*/
-#ifdef __CCS__
-typedef struct __attribute__ ((__packed__)) _netapp_pingreport_args
-#elif __IAR_SYSTEMS_ICC__
-#pragma pack(1)
 typedef struct _netapp_pingreport_args
-#elif __GNUC__
-typedef struct __attribute__ ((__packed__)) _netapp_pingreport_args
-#endif
 {
 	unsigned long packets_sent;
 	unsigned long packets_received;
@@ -175,15 +161,16 @@ extern 	long netapp_dhcp(unsigned long *aucIP, unsigned long *aucSubnetMask,unsi
  * \warning  Calling this function while a previous Ping  Requests are in progress
  * will stop the previous ping request.
  */
+ #ifndef CC3000_TINY_DRIVER
 extern long netapp_ping_send(unsigned long *ip, unsigned long ulPingAttempts, unsigned long ulPingSize, unsigned long ulPingTimeout);
-
-
+#endif
 /**
- * \brief Request for ping status
- *
- * \param[out] report    This argument is a pointer to a 
- *       netapp_pingreport_args_t structure. This structure is
- *       filled in with ping results up till point of triggering API.\n 
+ * \brief Request for ping status. This API triggers the CC3000 
+ *        to send asynchronous events:
+ *        HCI_EVNT_WLAN_ASYNC_PING_REPORT. This event will carry
+ *        the report structure: netapp_pingreport_args_t. This
+ *        structure is filled in with ping results up till point
+ *        of triggering API.\n
  *	   
  *       netapp_pingreport_args_t:\n packets_sent - echo sent,
  *       packets_received - echo reply, min_round_time - minimum
@@ -196,8 +183,9 @@ extern long netapp_ping_send(unsigned long *ip, unsigned long ulPingAttempts, un
  * \note    When a ping operation is not active, the returned structure fields are 0.\n
  * \warning     
  */
-extern void netapp_ping_report( netapp_pingreport_args_t * report );
-
+#ifndef CC3000_TINY_DRIVER
+extern void netapp_ping_report();
+#endif
 /**
  * \brief Stop any ping request
  *
@@ -209,9 +197,9 @@ extern void netapp_ping_report( netapp_pingreport_args_t * report );
  * \note        
  * \warning     
  */
-
+#ifndef CC3000_TINY_DRIVER
 extern long netapp_ping_stop();
-
+#endif
 
 /**
  * \brief Obtain the CC3000 Network interface information.
@@ -238,8 +226,9 @@ extern long netapp_ping_stop();
  *		the Wireless network the device is assosiated with.
  * \warning     
  */
+#ifndef CC3000_TINY_DRIVER
 extern void netapp_ipconfig( tNetappIpconfigRetArgs * ipconfig );
-
+#endif
 /**
  * \brief Flushes ARP table
  *  
@@ -252,33 +241,9 @@ extern void netapp_ipconfig( tNetappIpconfigRetArgs * ipconfig );
  * \note        
  * \warning     
  */
+#ifndef CC3000_TINY_DRIVER
 extern long netapp_arp_flush();
-
-
-/**
- * \brief Set debug level
- *  
- * Debug messages sent via the UART debug channel, this function 
- * enable/disable the debug level 
- *  
- * \return    On success, zero is returned. On error, -1 is 
- *            returned 
- *  
- *  
- * \param[in] level    debug level. Bitwise [0-8], 
- *      0(disable)or 1(enable).\n Bitwise map: 0 - Critical
- *      message, 1 information message, 2 - core messages, 3 -
- *      HCI messages, 4 - Network stack messages, 5 - wlan
- *      messages, 6 - wlan driver messages, 7 - epprom messages,
- *      8 - general messages. Default: 0x13f. Saved: no
- *  
- * 
- * \sa          
- * \note        
- * \warning     
- */
-
-extern long netapp_set_debug_level(unsigned long ulLevel);
+#endif
 
 /**
  * \brief Set new timeout values
@@ -325,8 +290,9 @@ extern long netapp_set_debug_level(unsigned long ulLevel);
  *        20s, it will be set automatically to 20s.
  * \warning     
  */
+ #ifndef CC3000_TINY_DRIVER
 extern long netapp_timeout_values(unsigned long *aucDHCP, unsigned long *aucARP,unsigned long *aucKeepalive,	unsigned long *aucInactivity);
-
+#endif
 
 
 //*****************************************************************************

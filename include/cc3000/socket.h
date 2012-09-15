@@ -81,16 +81,23 @@ extern "C" {
 #define IPPROTO_RAW             255         // raw IP packet
 #define IPPROTO_MAX             256
 
-//----------- Socket Options -----------
-#define  SOL_SOCKET             0xffff     //  socket level
-#define  SOCKOPT_RECV_TIMEOUT	1          //  optname to configure recv and recvfromtimeout
+//----------- Socket retunr codes  -----------
 
+#define SOC_ERROR				(-1)		// error 
+#define SOC_IN_PROGRESS			(-2)		// socket in progress
+
+//----------- Socket Options -----------
+#define  SOL_SOCKET             0xffff		//  socket level
+#define  SOCKOPT_RECV_TIMEOUT	1			//  optname to configure recv and recvfromtimeout
+#define  SOCK_NONBLOCK          2			// accept non block mode set SOCK_ON or SOCK_OFF (default block mode )
+#define  SOCK_ON                0			// socket non-blocking mode	is enabled		
+#define  SOCK_OFF               1			// socket blocking mode is enabled
 
 #define  TCP_NODELAY            0x0001
 #define  TCP_BSDURGENT          0x7000
 
 #define  MAX_PACKET_SIZE        1500
-#define  MAX_LISTEN_QUQUE       4
+#define  MAX_LISTEN_QUEUE       4
 
 #define  IOCTL_SOCKET_EVENTMASK
 
@@ -157,15 +164,19 @@ typedef struct
 #define FD_ISSET(fd, fdsetp)    __FD_ISSET (fd, fdsetp)
 #define FD_ZERO(fdsetp)         __FD_ZERO (fdsetp)
 
-#define htonl(A)                ((((unsigned long)(A) & 0xff000000) >> 24) | \
-                                (((unsigned long)(A) & 0x00ff0000) >> 8) | \
-                                (((unsigned long)(A) & 0x0000ff00) << 8) | \
-                                (((unsigned long)(A) & 0x000000ff) << 24))
+//Use in case of Big Endian only
+  
+#define htonl(A)    ((((unsigned long)(A) & 0xff000000) >> 24) | \
+                     (((unsigned long)(A) & 0x00ff0000) >> 8) | \
+                     (((unsigned long)(A) & 0x0000ff00) << 8) | \
+                     (((unsigned long)(A) & 0x000000ff) << 24))
 
 #define ntohl                   htonl
 
-#define htons(A)                ((((unsigned long)(A) & 0xff00) >> 8) | \
-                                (((unsigned long)(A) & 0x00ff) << 8))
+//Use in case of Big Endian only
+#define htons(A)     ((((unsigned long)(A) & 0xff00) >> 8) | \
+                      (((unsigned long)(A) & 0x00ff) << 8))
+
 
 #define ntohs                   htons
 
@@ -253,8 +264,14 @@ extern long closesocket(long sd);
  *       value-result argument: it should initially contain the
  *       size of the structure pointed to by addr
  *
- * \return	On success, socket handle. on failure negative
- *         value.
+ * \return	For socket in blocking mode:
+ *				On success, socket handle. on failure negative \n
+ *			For socket in non-blocking mode:
+ *				- On connection esatblishment, socket handle
+ *				- On connection pending, SOC_IN_PROGRESS (-2)
+ *				- On failure, SOC_ERROR	(-1)
+ *				
+ *
  *
  * \sa socket ; bind ; listen
  * \note 
@@ -418,31 +435,33 @@ extern int select(long nfds, fd_set *readsds, fd_set *writesds,
  * be returned.  For getsockopt(), optlen is a value-result 
  * parameter, initially contain- ing the size of the buffer 
  * pointed to by option_value, and modified on return to 
- * indicate the actual size of the value returned.  If no option 
- * value is to be supplied or returned, option_value may be 
- *  NULL.
+ * indicate the actual size of the value returned. This value returns in network order. 
+ * If no option value is to be supplied or returned, option_value may be  NULL. 
+ *
  *  
  * \param[in] sd                socket handle
  * \param[in] level             defines the protocol level for this option
  * \param[in] optname           defines the option name to interogate
  * \param[in] optval            specifies a value for the option
- * \param[in] optlen            lspecifies the length of the 
+ * \param[in] optlen            specifies the length of the 
  *       option value
  *
  * \return   On success, zero is returned. On error, -1 is 
  *            returned 
  * \sa getsockopt
- * \note On this version only SOL_SOCKET 
- *         (level) and SOCKOPT_RECV_TIMEOUT (optname) is
- *         enabled. SOCKOPT_RECV_TIMEOUT configures recv and
- *         recvfrom timeout. In that case optval should be
- *         pointer to unsigned long
- *        
+ * \note On this version the following socket options are enabled:
+ *			- SOL_SOCKET (optname). SOL_SOCKET configures socket level
+ *			- SOCKOPT_RECV_TIMEOUT (optname)
+ *			  SOCKOPT_RECV_TIMEOUT configures recv and recvfrom timeout. 
+ *			  In that case optval should be pointer to unsigned long
+ *			- SOCK_NONBLOCK (optname). set socket non-blocking mode is on or off.
+ *			  SOCK_ON or SOCK_OFF (optval)
  * \warning
  */
+#ifndef CC3000_TINY_DRIVER 
 extern int setsockopt(long sd, long level, long optname, const void *optval,
                       socklen_t optlen);
-
+#endif
 /**
  * \brief get socket options
  *
@@ -479,11 +498,13 @@ extern int setsockopt(long sd, long level, long optname, const void *optval,
  * \return		On success, zero is returned. On error, -1 is 
  *            returned 
  * \sa setsockopt
+ *
  * \note On this version only SOL_SOCKET 
  *         (level) and SOCKOPT_RECV_TIMEOUT (optname) is
  *         enabled. SOCKOPT_RECV_TIMEOUT configure recv and
  *         recvfrom timeout. In that case optval should be
  *         pointer to unsigned long
+ *        
  * \warning
  */
 extern int getsockopt(long sd, long level, long optname, void *optval,
@@ -564,7 +585,7 @@ extern int recvfrom(long sd, void *buf, long len, long flags, sockaddr *from,
  * \return   Return the number of bytes transmited, or -1 if an 
  *           error occurred
  *
- * \sa   sendto write
+ * \sa   sendto 
  * \note   On this version, only blocking mode is supported.
  * \warning   
  */
@@ -625,8 +646,9 @@ extern int sendto(long sd, const void *buf, long len, long flags,
  *		the function requires DNS server to be configured prior to its usage.
  * \warning
  */
+#ifndef CC3000_TINY_DRIVER 
 extern int gethostbyname(char * hostname, unsigned short usNameLen, unsigned long* out_ip_addr);
-
+#endif
 //*****************************************************************************
 //
 // Close the Doxygen group.

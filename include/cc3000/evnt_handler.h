@@ -53,10 +53,10 @@ extern "C" {
 //
 //*****************************************************************************
 extern unsigned char *hci_event_handler(void *pRetParams, unsigned char *from, unsigned char *fromlen);
-extern long hci_unsol_event_handler(hci_evnt_hdr_t *event_hdr);
+extern long hci_unsol_event_handler(char *event_hdr);
 extern long hci_unsolicited_event_handler(void);
 
-#define M_BSD_RESP_PARAMS_OFFSET(hci_event_hdr)(bsd_resp_params_t *)((char *)(hci_event_hdr) + sizeof(hci_evnt_hdr_t))
+#define M_BSD_RESP_PARAMS_OFFSET(hci_event_hdr)((char *)(hci_event_hdr) + HCI_EVENT_HEADER_SIZE)
 
 #define SOCKET_STATUS_ACTIVE       0
 #define SOCKET_STATUS_INACTIVE     1
@@ -71,23 +71,7 @@ extern unsigned long socket_active_status;
 extern void set_socket_active_status(long Sd, long Status);
 extern long get_socket_active_status(long Sd);
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-//packed is used for preventing padding before sending the structure over the SPI                       ///
-//for every IDE, exist different syntax:          1.   __MSP430FR5739__ for CCS v5                      ///
-//                                                2.  __IAR_SYSTEMS_ICC__ for IAR Embedded Workbench    ///
-// THIS COMMENT IS VALID FOR EVERY STRUCT DEFENITION!                                                   ///
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-#ifdef __CCS__
-typedef struct __attribute__ ((__packed__)) _bsd_accept_return_t
-#elif __IAR_SYSTEMS_ICC__
-#pragma pack(1)
 typedef struct _bsd_accept_return_t
-#elif __GNUC__
-typedef struct __attribute__ ((__packed__)) _bsd_accept_return_t
-#endif
 {
     long             iSocketDescriptor;
     long             iStatus;
@@ -96,76 +80,33 @@ typedef struct __attribute__ ((__packed__)) _bsd_accept_return_t
 } tBsdReturnParams;
 
 
-#ifdef __CCS__
-typedef struct __attribute__ ((__packed__)) _bsd_read_return_t
-#elif __IAR_SYSTEMS_ICC__
-#pragma pack(1)
 typedef struct _bsd_read_return_t
-#elif __GNUC__
-typedef struct __attribute__ ((__packed__)) _bsd_read_return_t
-#endif
 {
     long             iSocketDescriptor;
     long             iNumberOfBytes;
-    unsigned long	uiFlags;
+    unsigned long	 uiFlags;
 } tBsdReadReturnParams;
 
-
-#ifdef __CCS__
-typedef struct __attribute__ ((__packed__)) _bsd_recvfrom_data_return_t
-#elif __IAR_SYSTEMS_ICC__
-#pragma pack(1)
-typedef struct _bsd_recvfrom_data_return_t
-#elif __GNUC__
-typedef struct __attribute__ ((__packed__)) _bsd_recvfrom_data_return_t
-#endif
-{
-    long             iSocketDescriptor;
-	long             iFromLen;
-    long             iNumberOfBytes;
-    unsigned long	uiStatus;
-	long 			iFrom;
-} tBsdRecvFromDataParams;
+#define BSD_RECV_FROM_FROMLEN_OFFSET	(4)
+#define BSD_RECV_FROM_FROM_OFFSET		(16)
 
 
-#ifdef __CCS__
-typedef struct __attribute__ ((__packed__)) _bsd_select_return_t
-#elif __IAR_SYSTEMS_ICC__
-#pragma pack(1)
 typedef struct _bsd_select_return_t
-#elif __GNUC__
-typedef struct __attribute__ ((__packed__)) _bsd_select_return_t
-#endif
 {
-    long						iStatus;
+    long					iStatus;
 	unsigned long 			uiRdfd;
 	unsigned long 			uiWrfd;
 	unsigned long 			uiExfd;
 } tBsdSelectRecvParams;
 
 
-#ifdef __CCS__
-typedef struct __attribute__ ((__packed__)) _bsd_getsockopt_return_t
-#elif __IAR_SYSTEMS_ICC__
-#pragma pack(1)
 typedef struct _bsd_getsockopt_return_t
-#elif __GNUC__
-typedef struct __attribute__ ((__packed__)) _bsd_getsockopt_return_t
-#endif
 {
 	unsigned char			ucOptValue[4];
 	char						iStatus;
 } tBsdGetSockOptReturnParams;
 
-
-#ifdef __CCS__
-typedef struct __attribute__ ((__packed__)) _bsd_gethostbyname_return_t
-#elif __IAR_SYSTEMS_ICC__
-#pragma pack(1)
 typedef struct _bsd_gethostbyname_return_t
-#elif __GNUC__
-typedef struct __attribute__ ((__packed__)) _bsd_gethostbyname_return_t
-#endif
 {
     long             retVal;
     long             outputAddress;
