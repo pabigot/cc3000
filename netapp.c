@@ -45,64 +45,11 @@
                                 t = MIN_TIMER_VAL_SECONDS; \
                             }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-//packed is used for preventing padding before sending the structure over the SPI                       ///
-//for every IDE, exist different syntax:          1.   __MSP430FR5739__ for CCS v5                      ///
-//                                                2.  __IAR_SYSTEMS_ICC__ for IAR Embedded Workbench    ///
-// THIS COMMENT IS VALID FOR EVERY STRUCT DEFENITION!                                                   ///
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifdef __CCS__
-typedef struct __attribute__ ((__packed__)) _netapp_dhcp_args_t
-#elif __IAR_SYSTEMS_ICC__
-#pragma pack(1)
-typedef struct _netapp_dhcp_args_t
-#endif
-{
-    unsigned char aucIP[4];
-	unsigned char aucSubnetMask[4];
-	unsigned char aucDefaultGateway[4];
-	unsigned char aucDHCPServer[4];
-	unsigned char aucDNSServer[4];
-}netapp_dhcp_args_t;
-
-
-#ifdef __CCS__
-typedef struct __attribute__ ((__packed__)) _netapp_set_timers_args_t
-#elif __IAR_SYSTEMS_ICC__
-#pragma pack(1)
-typedef struct _netapp_set_timers_args_t
-#endif
-{
-    unsigned char aucDHCP[4];
-	unsigned char aucARP[4];
-	unsigned char aucKeepalive[4];
-	unsigned char aucInactivity[4];
-}netapp_set_timers_args_t;
-
-#ifdef __CCS__
-typedef struct __attribute__ ((__packed__)) _netapp_pingstart_args_t
-#elif __IAR_SYSTEMS_ICC__
-#pragma pack(1)
-typedef struct _netapp_pingstart_args_t
-#endif
-{
-    unsigned char ip[4];
-	unsigned long         ulPingAttempts;
-    unsigned long         ulPingSize;
-	unsigned long         ulPingTimeout;
-}netapp_pingstart_args_t;
-
-
-#ifdef __CCS__
-typedef struct __attribute__ ((__packed__)) _netapp_set_debug_level_args_t
-#elif __IAR_SYSTEMS_ICC__
-#pragma pack(1)
-typedef struct _netapp_set_debug_level_args_t
-#endif
-{
-    unsigned long level;
-}netapp_set_debug_level_args_t;
+#define NETAPP_DHCP_PARAMS_LEN 				(20)
+#define NETAPP_SET_TIMER_PARAMS_LEN 		(20)
+#define NETAPP_SET_DEBUG_LEVEL_PARAMS_LEN	(4)
+#define NETAPP_PING_SEND_PARAMS_LEN			(16)
 
 
 /**
@@ -124,7 +71,7 @@ typedef struct _netapp_set_debug_level_args_t
 
 long netapp_config_mac_adrress(unsigned char * mac)
 {
-   return  nvmem_write(NVMEM_MAC_FILEID,6,0,mac);
+   return  nvmem_set_mac_address(mac);
 }
 
 
@@ -162,25 +109,25 @@ long netapp_dhcp(unsigned long *aucIP, unsigned long *aucSubnetMask,unsigned lon
 {
     signed char scRet;
     unsigned char *ptr;
-    netapp_dhcp_args_t *args;
+    unsigned char *args;
 
     scRet = EFAIL;
     ptr = tSLInformation.pucTxCommandBuffer;
-    args = (netapp_dhcp_args_t *)(ptr + HEADERS_SIZE_CMD);
-
+    args = (ptr + HEADERS_SIZE_CMD);
+	
     //
     // Fill in temporary command buffer
     //
-    memcpy(args->aucIP, aucIP, sizeof(long));
-    memcpy(args->aucSubnetMask, aucSubnetMask, sizeof(long));
-    memcpy(args->aucDefaultGateway, aucDefaultGateway, sizeof(long));
-    memset(args->aucDHCPServer, 0, sizeof(long));
-	memcpy(args->aucDNSServer, aucDNSServer, sizeof(long));
-
+    args = UINT32_TO_STREAM(args, *aucIP);
+	args = UINT32_TO_STREAM(args, *aucSubnetMask);
+	args = UINT32_TO_STREAM(args, *aucDefaultGateway);
+	args = UINT32_TO_STREAM(args, 0);
+	args = UINT32_TO_STREAM(args, *aucDNSServer);
+	
     //
     // Initiate a HCI command
     //
-    hci_command_send(HCI_NETAPP_DHCP, ptr, sizeof(netapp_dhcp_args_t));
+    hci_command_send(HCI_NETAPP_DHCP, ptr, NETAPP_DHCP_PARAMS_LEN);
 
 	//
 	// Wait for command complete event
@@ -237,16 +184,17 @@ long netapp_dhcp(unsigned long *aucIP, unsigned long *aucSubnetMask,unsigned lon
  *        20s, it will be set automatically to 20s.
  * \warning     
  */
+#ifndef CC3000_TINY_DRIVER
 long 
 netapp_timeout_values(unsigned long *aucDHCP, unsigned long *aucARP,unsigned long *aucKeepalive,	unsigned long *aucInactivity)
 {
     signed char scRet;
     unsigned char *ptr;
-    netapp_set_timers_args_t *args;
+    unsigned char *args;
 
     scRet = EFAIL;
     ptr = tSLInformation.pucTxCommandBuffer;
-    args = (netapp_set_timers_args_t *)(ptr + HEADERS_SIZE_CMD);
+    args = (ptr + HEADERS_SIZE_CMD);
 
     //
     // Set minimal values of timers 
@@ -259,15 +207,16 @@ netapp_timeout_values(unsigned long *aucDHCP, unsigned long *aucARP,unsigned lon
     //
     // Fill in temporary command buffer
     //
-    memcpy(args->aucDHCP, aucDHCP, sizeof(long));
-    memcpy(args->aucARP, aucARP, sizeof(long));
-    memcpy(args->aucKeepalive, aucKeepalive, sizeof(long));
-    memcpy(args->aucInactivity, aucInactivity, sizeof(long));
+    args = UINT32_TO_STREAM(args, *aucDHCP);
+	args = UINT32_TO_STREAM(args, *aucARP);
+	args = UINT32_TO_STREAM(args, *aucKeepalive);
+	args = UINT32_TO_STREAM(args, *aucInactivity);
+	
 
     //
     // Initiate a HCI command
     //
-    hci_command_send(HCI_NETAPP_SET_TIMERS, ptr, sizeof(netapp_dhcp_args_t));
+    hci_command_send(HCI_NETAPP_SET_TIMERS, ptr, NETAPP_SET_TIMER_PARAMS_LEN);
 
 	//
 	// Wait for command complete event
@@ -276,7 +225,7 @@ netapp_timeout_values(unsigned long *aucDHCP, unsigned long *aucARP,unsigned lon
 	
     return(scRet);
 }
-
+#endif
 
 /**
  * \brief send ICMP ECHO_REQUEST to network hosts 
@@ -301,30 +250,29 @@ netapp_timeout_values(unsigned long *aucDHCP, unsigned long *aucARP,unsigned lon
  * \warning  Calling this function while a previous Ping  Requests are in progress
  * will stop the previous ping request.
  */
-
+#ifndef CC3000_TINY_DRIVER
 long
 netapp_ping_send(unsigned long *ip, unsigned long ulPingAttempts, unsigned long ulPingSize, unsigned long ulPingTimeout)
 {
     signed char scRet;
-    unsigned char *ptr;
-    netapp_pingstart_args_t *args;
+    unsigned char *ptr, *args;
 
     scRet = EFAIL;
     ptr = tSLInformation.pucTxCommandBuffer;
-    args = (netapp_pingstart_args_t *)(ptr + HEADERS_SIZE_CMD);
+    args = (ptr + HEADERS_SIZE_CMD);
 
     //
     // Fill in temporary command buffer
     //
-    memcpy(args->ip, ip, 4);
-    args->ulPingAttempts = ulPingAttempts;
-    args->ulPingSize = ulPingSize;
-    args->ulPingTimeout = ulPingTimeout;
-
+	args = UINT32_TO_STREAM(args, *ip);
+	args = UINT32_TO_STREAM(args, ulPingAttempts);
+	args = UINT32_TO_STREAM(args, ulPingSize);
+	args = UINT32_TO_STREAM(args, ulPingTimeout);
+	   
     //
     // Initiate a HCI command
     //
-    hci_command_send(HCI_NETAPP_PING_SEND, ptr, sizeof(netapp_pingstart_args_t));
+    hci_command_send(HCI_NETAPP_PING_SEND, ptr, NETAPP_PING_SEND_PARAMS_LEN);
 
 	//
 	// Wait for command complete event
@@ -333,13 +281,14 @@ netapp_ping_send(unsigned long *ip, unsigned long ulPingAttempts, unsigned long 
 	
     return(scRet);
 }
-
+#endif
 /**
- * \brief Request for ping status
- *
- * \param[out] report    This argument is a pointer to a 
- *       netapp_pingreport_args_t structure. This structure is
- *       filled in with ping results up till point of triggering API.\n 
+ * \brief Request for ping status. This API triggers the CC3000 
+ *        to send asynchronous events:
+ *        HCI_EVNT_WLAN_ASYNC_PING_REPORT. This event will carry
+ *        the report structure: netapp_pingreport_args_t. This
+ *        structure is filled in with ping results up till point
+ *        of triggering API.\n
  *	   
  *       netapp_pingreport_args_t:\n packets_sent - echo sent,
  *       packets_received - echo reply, min_round_time - minimum
@@ -352,11 +301,14 @@ netapp_ping_send(unsigned long *ip, unsigned long ulPingAttempts, unsigned long 
  * \note    When a ping operation is not active, the returned structure fields are 0.\n
  * \warning     
  */
-
-void netapp_ping_report( netapp_pingreport_args_t * report )
+#ifndef CC3000_TINY_DRIVER
+void netapp_ping_report()
 {
     unsigned char *ptr;
     ptr = tSLInformation.pucTxCommandBuffer;
+    signed char scRet;
+
+    scRet = EFAIL;
 
     //
     // Initiate a HCI command
@@ -366,9 +318,9 @@ void netapp_ping_report( netapp_pingreport_args_t * report )
 	//
 	// Wait for command complete event
 	//
-	SimpleLinkWaitEvent(HCI_NETAPP_PING_REPORT, report); 
+	SimpleLinkWaitEvent(HCI_NETAPP_PING_REPORT, &scRet); 
 }
-
+#endif
 
 /**
  * \brief Stop any ping request
@@ -381,7 +333,7 @@ void netapp_ping_report( netapp_pingreport_args_t * report )
  * \note        
  * \warning     
  */
-
+#ifndef CC3000_TINY_DRIVER
 long netapp_ping_stop()
 {
     signed char scRet;
@@ -402,7 +354,7 @@ long netapp_ping_stop()
 	
     return(scRet);
 }
-
+#endif
 
 /**
  * \brief Obtain the CC3000 Network interface information.
@@ -429,7 +381,7 @@ long netapp_ping_stop()
  *		the Wireless network the device is assosiated with.
  * \warning     
  */
-
+#ifndef CC3000_TINY_DRIVER
 void netapp_ipconfig( tNetappIpconfigRetArgs * ipconfig )
 {
     
@@ -448,7 +400,7 @@ void netapp_ipconfig( tNetappIpconfigRetArgs * ipconfig )
 	SimpleLinkWaitEvent(HCI_NETAPP_IPCONFIG, ipconfig );
 
 }
-
+#endif
 /**
  * \brief Flushes ARP table
  *  
@@ -461,7 +413,7 @@ void netapp_ipconfig( tNetappIpconfigRetArgs * ipconfig )
  * \note        
  * \warning     
  */
-
+#ifndef CC3000_TINY_DRIVER
 long netapp_arp_flush(void)
 {
 	signed char scRet;
@@ -482,58 +434,4 @@ long netapp_arp_flush(void)
 	
     return(scRet);
 }
-
-/**
- * \brief Set debug level
- *  
- * Debug messages sent via the UART debug channel, this function 
- * enable/disable the debug level 
- *  
- * \return    On success, zero is returned. On error, -1 is 
- *            returned 
- *  
- *  
- * \param[in] level    debug level. Bitwise [0-8], 
- *      0(disable)or 1(enable).\n Bitwise map: 0 - Critical
- *      message, 1 information message, 2 - core messages, 3 -
- *      HCI messages, 4 - Network stack messages, 5 - wlan
- *      messages, 6 - wlan driver messages, 7 - epprom messages,
- *      8 - general messages. Default: 0x13f. Saved: no
- *  
- * 
- * \sa          
- * \note        
- * \warning     
- */
-
-long netapp_set_debug_level(unsigned long ulLevel)
-{
-	signed char scRet;
-    unsigned char *ptr;
-    netapp_set_debug_level_args_t *args;
-
-    scRet = EFAIL;
-    ptr = tSLInformation.pucTxCommandBuffer;
-    args = (netapp_set_debug_level_args_t *)(ptr + HEADERS_SIZE_CMD);
-
-    //
-    // Fill in temporary command buffer
-    //
-    args->level= ulLevel;
-  
-
-    //
-    // Initiate a HCI command
-    //
-    hci_command_send(HCI_NETAPP_SET_DEBUG_LEVEL, ptr, sizeof(netapp_set_debug_level_args_t));
-
-    //
-	// Wait for command complete event
-	//
-	SimpleLinkWaitEvent(HCI_NETAPP_SET_DEBUG_LEVEL, &scRet);
-	
-    return(scRet);
-
-}
-
-
+#endif

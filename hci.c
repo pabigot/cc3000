@@ -66,18 +66,18 @@ unsigned short
 hci_command_send(unsigned short usOpcode, unsigned char *pucBuff,
                      unsigned char ucArgsLength)
 { 
-    hci_cmnd_hdr_t *hci_cmnd_hdr_ptr;
+	unsigned char *stream;
  
-    hci_cmnd_hdr_ptr = (hci_cmnd_hdr_t *)(pucBuff + SPI_HEADER_SIZE);
-
-    hci_cmnd_hdr_ptr->ucType = HCI_TYPE_CMND;
-    hci_cmnd_hdr_ptr->usOpcode = usOpcode;
-    hci_cmnd_hdr_ptr->ucLength = ucArgsLength;
+	stream = (pucBuff + SPI_HEADER_SIZE);
+	
+	UINT8_TO_STREAM(stream, HCI_TYPE_CMND);
+	stream = UINT16_TO_STREAM(stream, usOpcode);
+	UINT8_TO_STREAM(stream, ucArgsLength);
 
     //
 	// Update the opcode of the event we will be waiting for
 	//
-    SpiWrite(pucBuff, ucArgsLength + sizeof(hci_cmnd_hdr_t));
+    SpiWrite(pucBuff, ucArgsLength + SIMPLE_LINK_HCI_CMND_HEADER_SIZE);
 
 
     return(0);
@@ -104,26 +104,19 @@ hci_data_send(unsigned char ucOpcode,
                            const unsigned char *ucTail,
                            unsigned short usTailLength)
 {
-    hci_data_hdr_t *hci_data_hdr_ptr;
+	unsigned char *stream;
+ 
+	stream = ((ucArgs) + SPI_HEADER_SIZE);
 	
-
-
-
-    hci_data_hdr_ptr = (hci_data_hdr_t *)((ucArgs) + SPI_HEADER_SIZE);
-    
-
-	//
-	// Fill in the HCI header of data packet
-	//
-    hci_data_hdr_ptr->ucType = HCI_TYPE_DATA;
-    hci_data_hdr_ptr->ucOpcode = ucOpcode;
-    hci_data_hdr_ptr->ucArgsize = usArgsLength;
-    hci_data_hdr_ptr->usLength = usArgsLength + usDataLength + usTailLength;
+	UINT8_TO_STREAM(stream, HCI_TYPE_DATA);
+	UINT8_TO_STREAM(stream, ucOpcode);
+	UINT8_TO_STREAM(stream, usArgsLength);
+	stream = UINT16_TO_STREAM(stream, usArgsLength + usDataLength + usTailLength);
 
 	//
 	// Send the packet over the SPI
 	//
-    SpiWrite(ucArgs, sizeof(hci_data_hdr_t) + usArgsLength + usDataLength + usTailLength);
+    SpiWrite(ucArgs, SIMPLE_LINK_HCI_DATA_HEADER_SIZE + usArgsLength + usDataLength + usTailLength);
 
     return(ESUCCESS);
 }
@@ -145,19 +138,18 @@ hci_data_send(unsigned char ucOpcode,
 void hci_data_command_send(unsigned short usOpcode, unsigned char *pucBuff,
                      unsigned char ucArgsLength,unsigned short ucDataLength)
 { 
-    hci_data_cmd_hdr_t *hci_cmnd_hdr_ptr;
- 
-    hci_cmnd_hdr_ptr = (hci_data_cmd_hdr_t *)(pucBuff + SPI_HEADER_SIZE);
+ 	unsigned char *stream = (pucBuff + SPI_HEADER_SIZE);
 
-    hci_cmnd_hdr_ptr->ucType = HCI_TYPE_DATA;
-    hci_cmnd_hdr_ptr->ucOpcode = usOpcode;
-    hci_cmnd_hdr_ptr->ucArgLength = ucArgsLength;
-	hci_cmnd_hdr_ptr->usTotalLength = ucArgsLength + ucDataLength;
+	UINT8_TO_STREAM(stream, HCI_TYPE_DATA);
+	UINT8_TO_STREAM(stream, usOpcode);
+	UINT8_TO_STREAM(stream, ucArgsLength);
+	stream = UINT16_TO_STREAM(stream, ucArgsLength + ucDataLength);
+
 
     //
 	// Send teh command over SPI on data channel
 	//
-    SpiWrite(pucBuff, ucArgsLength + ucDataLength + sizeof(hci_data_cmd_hdr_t));
+    SpiWrite(pucBuff, ucArgsLength + ucDataLength + SIMPLE_LINK_HCI_DATA_CMND_HEADER_SIZE);
 
 
     return;
@@ -179,43 +171,49 @@ void hci_data_command_send(unsigned short usOpcode, unsigned char *pucBuff,
 void
 hci_patch_send(unsigned char ucOpcode, unsigned char *pucBuff, char *patch, unsigned short usDataLength)
 { 
-    hci_patch_hdr_t *hci_patch_hdr_ptr;
  	unsigned char *data_ptr = (pucBuff + SPI_HEADER_SIZE);
 	unsigned short usTransLength;
-	
-	
-    hci_patch_hdr_ptr = (hci_patch_hdr_t *)(pucBuff + SPI_HEADER_SIZE);
 
-    hci_patch_hdr_ptr->ucType = HCI_TYPE_PATCH;
-    hci_patch_hdr_ptr->ucOpcode = ucOpcode;
-    hci_patch_hdr_ptr->usLength = usDataLength + sizeof(hci_patch_hdr_ptr->usTransactionLength);
+	unsigned char *stream = (pucBuff + SPI_HEADER_SIZE);
+	
+	UINT8_TO_STREAM(stream, HCI_TYPE_PATCH);
+	UINT8_TO_STREAM(stream, ucOpcode);
+	stream = UINT16_TO_STREAM(stream, usDataLength + SIMPLE_LINK_HCI_PATCH_HEADER_SIZE);
+
+	
+	
 
 	if (usDataLength <= SL_PATCH_PORTION_SIZE)
 	{
-		hci_patch_hdr_ptr->usTransactionLength = usDataLength;
+		UINT16_TO_STREAM(stream, usDataLength);
+		stream = UINT16_TO_STREAM(stream, usDataLength);
 		
-		memcpy(hci_patch_hdr_ptr + 1, patch, usDataLength);
+		
+		
+		memcpy((pucBuff + SPI_HEADER_SIZE) + HCI_PATCH_HEADER_SIZE, patch, usDataLength);
 
 		
 		//
 		// Update the opcode of the event we will be waiting for
 		//
-		SpiWrite(pucBuff, usDataLength + sizeof(hci_patch_hdr_t));
+		SpiWrite(pucBuff, usDataLength + HCI_PATCH_HEADER_SIZE);
 	}
 	else
 	{
-                usTransLength = (usDataLength/SL_PATCH_PORTION_SIZE);
-		hci_patch_hdr_ptr->usLength += usTransLength*sizeof(hci_patch_hdr_ptr->usTransactionLength);
 		
-		hci_patch_hdr_ptr->usTransactionLength = SL_PATCH_PORTION_SIZE;
-		memcpy(hci_patch_hdr_ptr + 1, patch, SL_PATCH_PORTION_SIZE);
+        usTransLength = (usDataLength/SL_PATCH_PORTION_SIZE);
+		UINT16_TO_STREAM(stream, usDataLength + SIMPLE_LINK_HCI_PATCH_HEADER_SIZE + usTransLength*SIMPLE_LINK_HCI_PATCH_HEADER_SIZE);
+	    stream = UINT16_TO_STREAM(stream, SL_PATCH_PORTION_SIZE);
+		
+		
+		memcpy(pucBuff + SPI_HEADER_SIZE + HCI_PATCH_HEADER_SIZE, patch, SL_PATCH_PORTION_SIZE);
 		usDataLength -= SL_PATCH_PORTION_SIZE;
 		patch += SL_PATCH_PORTION_SIZE;
 		
 		//
 		// Update the opcode of the event we will be waiting for
 		//
-		SpiWrite(pucBuff, SL_PATCH_PORTION_SIZE + sizeof(hci_patch_hdr_t));
+		SpiWrite(pucBuff, SL_PATCH_PORTION_SIZE + HCI_PATCH_HEADER_SIZE);
 
 		while (usDataLength)
 		{
@@ -232,7 +230,7 @@ hci_patch_send(unsigned char ucOpcode, unsigned char *pucBuff, char *patch, unsi
 			}
 
 			*(unsigned short *)data_ptr = usTransLength;
-			memcpy(data_ptr + sizeof(hci_patch_hdr_ptr->usTransactionLength), patch, usTransLength);
+			memcpy(data_ptr + SIMPLE_LINK_HCI_PATCH_HEADER_SIZE, patch, usTransLength);
 			patch += usTransLength;
 
 			 //

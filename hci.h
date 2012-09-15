@@ -51,7 +51,9 @@ extern "C" {
 #define SPI_HEADER_SIZE 				   			(5)
 #define SIMPLE_LINK_HCI_CMND_HEADER_SIZE 			(4)
 #define HEADERS_SIZE_CMD        					(SPI_HEADER_SIZE + SIMPLE_LINK_HCI_CMND_HEADER_SIZE)
-
+#define SIMPLE_LINK_HCI_DATA_CMND_HEADER_SIZE 		(5)
+#define SIMPLE_LINK_HCI_DATA_HEADER_SIZE 			(5)
+#define SIMPLE_LINK_HCI_PATCH_HEADER_SIZE 			(2)
 
 
 //*****************************************************************************
@@ -104,7 +106,6 @@ extern "C" {
 #define HCI_DATA_BASE								0x80
 
 #define HCI_CMND_SEND           					(0x01 + HCI_DATA_BASE)
-#define HCI_CMND_WRITE	   							(0x02 + HCI_DATA_BASE)
 #define HCI_CMND_SENDTO        						(0x03 + HCI_DATA_BASE)
 #define HCI_DATA_BSD_RECVFROM						(0x04 + HCI_DATA_BASE)
 #define HCI_DATA_BSD_RECV							(0x05 + HCI_DATA_BASE)
@@ -118,6 +119,7 @@ extern "C" {
 #define HCI_CMND_NVMEM_READ    		(0x0201)
 #define HCI_CMND_NVMEM_WRITE   		(0x0090)
 #define HCI_CMND_NVMEM_WRITE_PATCH	(0x0204)
+#define HCI_CMND_READ_SP_VERSION  	(0x0207)
 
 #define  HCI_CMND_READ_BUFFER_SIZE  0x400B
 #define  HCI_CMND_SIMPLE_LINK_START 0x4000
@@ -176,6 +178,7 @@ extern "C" {
 #define HCI_EVNT_WLAN_UNSOL_CONNECT  	 (0x0001 + HCI_EVNT_WLAN_UNSOL_BASE)
 #define HCI_EVNT_WLAN_UNSOL_DISCONNECT   (0x0002 + HCI_EVNT_WLAN_UNSOL_BASE)
 #define HCI_EVNT_WLAN_UNSOL_INIT         (0x0004 + HCI_EVNT_WLAN_UNSOL_BASE)
+#define HCI_EVNT_WLAN_TX_COMPLETE         (0x0008 + HCI_EVNT_WLAN_UNSOL_BASE)
 #define HCI_EVNT_WLAN_UNSOL_DHCP         (0x0010 + HCI_EVNT_WLAN_UNSOL_BASE)
 #define HCI_EVNT_WLAN_ASYNC_PING_REPORT  (0x0040 + HCI_EVNT_WLAN_UNSOL_BASE)
 #define HCI_EVNT_WLAN_ASYNC_SIMPLE_CONFIG_DONE  (0x0080 + HCI_EVNT_WLAN_UNSOL_BASE)
@@ -191,6 +194,9 @@ extern "C" {
 #define HCI_EVNT_NVMEM_READ     HCI_CMND_NVMEM_READ
 #define HCI_EVNT_NVMEM_WRITE    (0x0202)
 
+#define HCI_EVNT_READ_SP_VERSION  	\
+				HCI_CMND_READ_SP_VERSION
+
 #define  HCI_EVNT_INPROGRESS    0xFFFF
 
 
@@ -198,7 +204,7 @@ extern "C" {
 #define HCI_DATA_RECV           0x85
 #define HCI_DATA_NVMEM          0x91
 
-
+#define HCI_EVENT_CC3000_CAN_SHUT_DOWN 0x99
 
 //*****************************************************************************
 //
@@ -206,108 +212,22 @@ extern "C" {
 //
 //*****************************************************************************
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-//packed is used for preventing padding before sending the structure over the SPI                       ///
-//for every IDE, exist different syntax:          1.   __MSP430FR5739__ for CCS v5                      ///
-//                                                2.  __IAR_SYSTEMS_ICC__ for IAR Embedded Workbench    ///
-// THIS COMMENT IS VALID FOR EVERY STRUCT DEFENITION!                                                   ///
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
+#define HCI_DATA_HEADER_SIZE		(5)
+#define HCI_EVENT_HEADER_SIZE		(5)
+#define HCI_DATA_CMD_HEADER_SIZE	(5)
+#define HCI_PATCH_HEADER_SIZE		(6)
+
+#define HCI_PACKET_TYPE_OFFSET		(0)
+#define HCI_PACKET_ARGSIZE_OFFSET	(2)
+#define HCI_PACKET_LENGTH_OFFSET	(3)
 
 
-#ifdef __CCS__
-typedef struct __attribute__ ((__packed__)) _hci_flags_t
-#elif __IAR_SYSTEMS_ICC__
-#pragma pack(1)
-typedef struct _hci_flags_t
-#endif
-{
-  char bIsBlocking: 1;
-  char bDataIsAvailable:1;
-  char bEchoEvents:1;
-  char bWorkWithBridge:1;
-} hci_flags_t;
-
-
-#ifdef __CCS__
-typedef struct __attribute__ ((__packed__)) _hci_cmnd_hdr_t
-#elif __IAR_SYSTEMS_ICC__
-#pragma pack(1)
-typedef struct _hci_cmnd_hdr_t
-#endif
-{
-    unsigned char  ucType;
-    unsigned short usOpcode;
-    unsigned char  ucLength;
-} hci_cmnd_hdr_t;
-
-
-#ifdef __CCS__
-typedef struct __attribute__ ((__packed__)) _hci_patch_hdr_t
-#elif __IAR_SYSTEMS_ICC__
-#pragma pack(1)
-typedef struct  _hci_patch_hdr_t
-#endif
-{
-    unsigned char  ucType;
-    unsigned char  ucOpcode;
-    unsigned short usLength;
-	unsigned short usTransactionLength;
-} hci_patch_hdr_t;
-
-
-#ifdef __CCS__
-typedef struct __attribute__ ((__packed__)) _hci_hdr_t
-#elif __IAR_SYSTEMS_ICC__
-#pragma pack(1)
-typedef struct  _hci_hdr_t
-#endif
-{
-    unsigned char  ucType;
-    unsigned char  ucOpcode;
-    unsigned char  pad[3];
-} hci_hdr_t;
-
-
-#ifdef __CCS__
-typedef struct __attribute__ ((__packed__)) _hci_data_hdr_t
-#elif __IAR_SYSTEMS_ICC__
-#pragma pack(1)
-typedef struct  _hci_data_hdr_t
-#endif
-{
-    unsigned char  ucType;
-    unsigned char  ucOpcode;
-    unsigned char  ucArgsize;
-    unsigned short usLength;
-} hci_data_hdr_t;
-
-
-#ifdef __CCS__
-typedef struct __attribute__ ((__packed__)) _hci_data_cmd_hdr_t
-#elif __IAR_SYSTEMS_ICC__
-#pragma pack(1)
-typedef struct  _hci_data_cmd_hdr_t
-#endif
-{
-    unsigned char  ucType;
-    unsigned char  ucOpcode;
-    unsigned char  ucArgLength;
-	unsigned short usTotalLength;
-} hci_data_cmd_hdr_t;
-
-
-#ifdef __CCS__
-typedef struct __attribute__ ((__packed__)) _hci_evnt_hdr_t
-#elif __IAR_SYSTEMS_ICC__
-#pragma pack(1)
-typedef struct _hci_evnt_hdr_t
-#endif
-{
-    unsigned char  ucType;
-    unsigned short usEvntOpcode;
-    unsigned char  ucLength;
-    unsigned char  ucStatus;
-} hci_evnt_hdr_t;
+#define HCI_EVENT_OPCODE_OFFSET (1)
+#define HCI_EVENT_LENGTH_OFFSET	(3)
+#define HCI_EVENT_STATUS_OFFSET	(4)
+#define HCI_DATA_LENGTH_OFFSET	(3)
+  
+  
 
 
 //*****************************************************************************
