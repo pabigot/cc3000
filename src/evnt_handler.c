@@ -386,10 +386,12 @@ hci_event_handler(void *pRetParams, unsigned char *from, unsigned char *fromlen)
 							STREAM_TO_UINT32((char *)pucReceivedParams,NETAPP_IPCONFIG_DNS_OFFSET,*(unsigned long *)pRetParams);
 							pRetParams = ((char *)pRetParams) + 4;
                                                         
-                                                        STREAM_TO_UINT32((char *)pucReceivedParams,NETAPP_IPCONFIG_MAC_OFFSET,*(unsigned long *)pRetParams);
+                                                        //STREAM_TO_UINT32((char *)pucReceivedParams,NETAPP_IPCONFIG_MAC_OFFSET,*(unsigned long *)pRetParams);
+							memcpy(pRetParams, pucReceivedParams + NETAPP_IPCONFIG_MAC_OFFSET, 6);
 							pRetParams = ((char *)pRetParams) + 6;
                                                         
-                                                        STREAM_TO_UINT32((char *)pucReceivedParams,NETAPP_IPCONFIG_SSID_OFFSET,*(unsigned long *)pRetParams);
+                                                        //STREAM_TO_UINT32((char *)pucReceivedParams,NETAPP_IPCONFIG_SSID_OFFSET,*(unsigned long *)pRetParams);
+							memcpy(pRetParams, pucReceivedParams + NETAPP_IPCONFIG_SSID_OFFSET, 32);
 							
 														
 					}
