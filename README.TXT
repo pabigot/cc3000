@@ -1,11 +1,10 @@
 This directory contains the master branch of
-http://www.ti.com/lit/zip/swrc246 https://github.com/pabigot/cc3000, which
-holds the CC3000 Host Driver sources from Texas Instruments packaged into a
-git repository, rearranged to avoid conflicts between CC3000 and application
-headers, and augmented with an autoconf-based build infrastructure.  It
-specifically supports building the library using mspgcc
-(http://sourceforge.net/projects/mspgcc/).  It also contains patches to
-some problems discovered when using the driver.
+https://github.com/pabigot/cc3000, which holds the CC3000 Host Driver
+sources from Texas Instruments packaged into a git repository, rearranged to
+avoid conflicts between CC3000 and application headers, and augmented with
+an autoconf-based build infrastructure.  It specifically supports building
+the library using mspgcc (http://sourceforge.net/projects/mspgcc/).  It also
+contains patches to some problems discovered when using the driver.
 
 The original source code can be found at
 http://www.ti.com/tool/cc3000-fram-sw.  Source code is copyright Texas
@@ -51,7 +50,7 @@ changes have also not been integrated into the repository.
 Please note: I (pabigot) do not use the TI SPI driver, and can't provide
 support for using it independently or with TI example programs.  For basic
 evaluation of the CC3000 I used the CC3000 with a driver under BSP430, which
-is documented at: http://github.com/pabigot/bsp430/ex_rfem_cc3000.html
+is documented at: http://pabigot.github.com/bsp430/ex_rfem_cc3000.html
 
 Example of configuration and installation assuming mspgcc is installed:
 
