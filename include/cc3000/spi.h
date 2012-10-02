@@ -1,3 +1,4 @@
+/* MODIFIED 20121002 to exclude prototypes not required by driver */
 /*****************************************************************************
 *
 *  spi.h  - CC4000 Slim Driver Implementation.
@@ -67,6 +68,7 @@ extern void SpiOpen(gcSpiHandleRx pfRxHandler);
 extern void SpiClose(void);
 extern long SpiWrite(unsigned char *pUserBuffer, unsigned short usLength);
 extern void SpiResumeSpi(void);
+#if 0
 extern void SpiConfigureHwMapping(	unsigned long ulPioPortAddress,
 									unsigned long ulPort, 
 									unsigned long ulSpiCs, 
@@ -77,7 +79,8 @@ extern void SpiConfigureHwMapping(	unsigned long ulPioPortAddress,
 									unsigned long ulSsiRx,
 									unsigned long ulSsiClck);
 extern void SpiCleanGPIOISR(void);
-
+#endif
+  
 //*****************************************************************************
 //
 // Mark the end of the C bindings section for C++ compilers.
