@@ -108,14 +108,16 @@ unsigned char* UINT16_TO_STREAM_f (unsigned char *p, unsigned short u16)
 //This function is used for copying received stream to 16 bit in little endian format.
 unsigned short STREAM_TO_UINT16_f(char* p, unsigned short offset)
 {
-        return (unsigned short)((unsigned short)((unsigned short)(*(p + offset + 1)) << 8) + (unsigned short)(*(p + offset)));
+	unsigned char * up = offset + (unsigned char *)p;
+        return ((unsigned short)up[1] << 8) | up[0];
 }
 
 
 //This function is used for copying received stream to 32 bit in little endian format.
 unsigned long STREAM_TO_UINT32_f(char* p, unsigned short offset)
 {
-        return (unsigned long)((unsigned long)((unsigned long)(*(p + offset + 3)) << 24) + (unsigned long)((unsigned long)(*(p + offset + 2)) << 16) + (unsigned long)((unsigned long)(*(p + offset + 1)) << 8) + (unsigned long)(*(p + offset)));
+	unsigned char * up = offset + (unsigned char *)p;
+	return ((unsigned long)up[3] << 24) | ((unsigned long)up[2] << 16) | (unsigned long)(up[1] << 8) | up[0];
 }
 
 
