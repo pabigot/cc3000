@@ -89,7 +89,7 @@ extern "C" {
 //----------- Socket Options -----------
 #define  SOL_SOCKET             0xffff		//  socket level
 #define  SOCKOPT_RECV_TIMEOUT	1			//  optname to configure recv and recvfromtimeout
-#define  SOCK_NONBLOCK          2			// accept non block mode set SOCK_ON or SOCK_OFF (default block mode )
+#define  SOCKOPT_NONBLOCK          2			// accept non block mode set SOCK_ON or SOCK_OFF (default block mode )
 #define  SOCK_ON                0			// socket non-blocking mode	is enabled		
 #define  SOCK_OFF               1			// socket blocking mode is enabled
 
@@ -106,7 +106,10 @@ extern "C" {
 #define __FD_SETSIZE            32
 
 #define  ASIC_ADDR_LEN          8
-
+	
+#define NO_QUERY_RECIVED        -3
+	
+	
 typedef struct _in_addr_t
 {
     unsigned long s_addr;                   // load with inet_aton()
@@ -177,6 +180,14 @@ typedef struct
 
 
 #define ntohs                   htons
+
+// mDNS port - 5353    mDNS multicast address - 224.0.0.251 
+#define SET_mDNS_ADD(sockaddr)     	   	sockaddr.sa_data[0] = 0x14; \
+																								sockaddr.sa_data[1] = 0xe9; \
+																								sockaddr.sa_data[2] = 0xe0; \
+																								sockaddr.sa_data[3] = 0x0; \
+																								sockaddr.sa_data[4] = 0x0; \
+																								sockaddr.sa_data[5] = 0xfb; 
 
 
 //*****************************************************************************
@@ -647,6 +658,21 @@ extern int sendto(long sd, const void *buf, long len, long flags,
 #ifndef CC3000_TINY_DRIVER 
 extern int gethostbyname(char * hostname, unsigned short usNameLen, unsigned long* out_ip_addr);
 #endif
+
+/**
+ * \Set CC3000 in mDNS advertiser mode in order to advertise itself
+ * 
+ * This function is used to make the CC3000 seen by mDNS browsers
+ * \param[in] mdnsEnabled          		flag to enable/disable the mDNS feature
+ * \param[in] deviceServiceName    		the service name as part of the published canonical domain name
+ * \param[in] deviceServiceNameLength     the length of the service name
+ * \return   On success, zero is returned,    return SOC_ERROR if socket was not opened successfully, or if an error occurred.
+ *
+ * \sa   
+ * \note 
+ * \warning   
+ */
+extern int mdnsAdvertiser(unsigned short mdnsEnabled, char * deviceServiceName, unsigned short deviceServiceNameLength);
 //*****************************************************************************
 //
 // Close the Doxygen group.

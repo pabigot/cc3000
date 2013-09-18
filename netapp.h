@@ -226,9 +226,10 @@ extern long netapp_ping_stop();
  *		the Wireless network the device is assosiated with.
  * \warning     
  */
-#ifndef CC3000_TINY_DRIVER
+
 extern void netapp_ipconfig( tNetappIpconfigRetArgs * ipconfig );
-#endif
+
+
 /**
  * \brief Flushes ARP table
  *  

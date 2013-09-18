@@ -54,6 +54,7 @@
 //*****************************************************************************
 
 #define NVMEM_READ_PARAMS_LEN 	(12)
+#define NVMEM_CREATE_PARAMS_LEN 	(8)
 #define NVMEM_WRITE_PARAMS_LEN  (16)
 /*****************************************************************************
  * \brief Read data from nvmem
@@ -69,7 +70,8 @@
  * NVMEM_WLAN_DRIVER_SP_FILEID, NVMEM_WLAN_FW_SP_FILEID,
  * NVMEM_MAC_FILEID, NVMEM_FRONTEND_VARS_FILEID,
  * NVMEM_IP_CONFIG_FILEID, NVMEM_IP_CONFIG_SHADOW_FILEID,
- * NVMEM_BOOTLOADER_SP_FILEID or NVMEM_RM_FILEID.
+ * NVMEM_BOOTLOADER_SP_FILEID, NVMEM_RM_FILEID,
+ * and user files 12-15
  * \param[in] ulLength   number of bytes to read  
  * \param[in] ulOffset   ulOffset in file from where to read  
  * \param[out] buff    output buffer pointer
@@ -130,12 +132,9 @@ nvmem_read(unsigned long ulFileId, unsigned long ulLength, unsigned long ulOffse
  * need to be valid - only allocated.
  *  
  * \param[in] ulFileId   nvmem file id:\n
- * NVMEM_NVS_FILEID, NVMEM_NVS_SHADOW_FILEID,
- * NVMEM_WLAN_CONFIG_FILEID, NVMEM_WLAN_CONFIG_SHADOW_FILEID,
  * NVMEM_WLAN_DRIVER_SP_FILEID, NVMEM_WLAN_FW_SP_FILEID,
- * NVMEM_MAC_FILEID, NVMEM_FRONTEND_VARS_FILEID,
- * NVMEM_IP_CONFIG_FILEID, NVMEM_IP_CONFIG_SHADOW_FILEID,
- * NVMEM_BOOTLOADER_SP_FILEID or NVMEM_RM_FILEID.
+ * NVMEM_MAC_FILEID, NVMEM_BOOTLOADER_SP_FILEID,
+ * and user files 12-15
  * \param[in] ulLength    number of bytes to write   
  * \param[in] ulEntryOffset  offset in file to start write operation from    
  * \param[in] buff      data to write 
@@ -309,6 +308,57 @@ unsigned char nvmem_read_sp_version(unsigned char* patchVer)
     return(retBuf[0]);
 }
 #endif
+
+/*****************************************************************************
+ * \brief Create new file entry and allocate space on the NVMEM. 
+ * Applies only to user files.
+ *  
+ * Modify the size of file.\n
+ * If the entry is unallocated - allocate it to size ulNewLen (marked invalid).\n
+ * If it is allocated then deallocate it first.\n
+ * To just mark the file as invalid without resizing - set ulNewLen=0.\n
+ * 
+ * \param[in] ulFileId   nvmem file Id:\n
+ * NVMEM_AES128_KEY_FILEID: 12
+ * NVMEM_SHARED_MEM_FILEID: 13
+ * and fileIDs 14 and 15
+ * \param[in] ulNewLen    entry ulLength  
+ *
+ * \return  on success 0, error otherwise.	            
+ *
+ * \sa
+ * \note
+ * \warning
+ *
+ *****************************************************************************/
+signed long 
+nvmem_create_entry(unsigned long ulFileId, unsigned long ulNewLen)
+{
+    unsigned char *ptr; 
+    unsigned char *args;
+    unsigned short retval;
+	
+    ptr = tSLInformation.pucTxCommandBuffer;
+    args = (ptr + HEADERS_SIZE_CMD);
+    
+    //
+    // Fill in HCI packet structure
+    //
+    args = UINT32_TO_STREAM(args, ulFileId);
+    args = UINT32_TO_STREAM(args, ulNewLen);
+
+    //
+    // Initiate a HCI command
+    //
+	hci_command_send(HCI_CMND_NVMEM_CREATE_ENTRY,ptr, NVMEM_CREATE_PARAMS_LEN);
+
+   SimpleLinkWaitEvent(HCI_CMND_NVMEM_CREATE_ENTRY, &retval);
+	
+   
+    return(retval);
+}
+
+
 
 //*****************************************************************************
 //

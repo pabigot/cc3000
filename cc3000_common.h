@@ -66,11 +66,11 @@ extern "C" {
 
 #define	MAC_ADDR_LEN	(6)
 
-#define	SP_PORTION_SIZE	(20)
-
+#define	SP_PORTION_SIZE	(32)
+  
 
 //TX and RX buffer sizes - allow to receive and transmit maximum data at lengh 8.
-#ifndef CC3000_TINY_DRIVER
+#ifdef CC3000_TINY_DRIVER
 #define TINY_CC3000_MAXIMAL_RX_SIZE 44
 #define TINY_CC3000_MAXIMAL_TX_SIZE 59
 #endif
@@ -91,7 +91,7 @@ extern "C" {
 // max(CC3000_MINIMAL_RX_SIZE, MAX_DATA + HEADERS_SIZE_DATA + fromlen + ucArgsize + 1)
 // Using gethostbyname() with minimal buffer size will limit the host name returned to 99 bytes only.  
 // The 1 is used for the overrun detection
-#define CC3000_MINIMAL_RX_SIZE      (118 + 1)
+#define CC3000_MINIMAL_RX_SIZE      (118+1)
 #define CC3000_MAXIMAL_RX_SIZE      (1519 + 1)
 
 //Defines for minimal and maximal TX buffer size.
@@ -107,8 +107,8 @@ extern "C" {
 // Using Send():
 // max(CC3000_MINIMAL_TX_SIZE, MAX_DATA + SPI_HEADER_SIZE + HCI_CMND_SEND_ARG_LENGTH + SIMPLE_LINK_HCI_DATA_HEADER_SIZE + 1)
 // The 1 is used for the overrun detection
-#define  CC3000_MINIMAL_TX_SIZE      (118 + 1) 
-#define CC3000_MAXIMAL_TX_SIZE      (1519 + 1)
+#define	CC3000_MINIMAL_TX_SIZE      (118 + 1)  
+#define	CC3000_MAXIMAL_TX_SIZE      (1519 + 1)
 
 //In order to determine your preferred buffer size, change CC3000_MAXIMAL_RX_SIZE and CC3000_MAXIMAL_TX_SIZE 
 //to a value between the minimal and maximal specified above. 
@@ -118,8 +118,8 @@ extern "C" {
   
 #ifndef CC3000_TINY_DRIVER
   
-	#define CC3000_RX_BUFFER_SIZE   (CC3000_MAXIMAL_RX_SIZE)
-	#define CC3000_TX_BUFFER_SIZE   (CC3000_MAXIMAL_TX_SIZE)
+	#define CC3000_RX_BUFFER_SIZE   (CC3000_MINIMAL_RX_SIZE)
+	#define CC3000_TX_BUFFER_SIZE   (CC3000_MINIMAL_TX_SIZE)
   
 //if defined TINY DRIVER we use smaller rx and tx buffer in order to minimize RAM consumption
 #else
@@ -188,7 +188,7 @@ typedef struct
 
 
 
-extern sSimplLinkInformation tSLInformation;
+extern volatile sSimplLinkInformation tSLInformation;
 
 
 //*****************************************************************************
@@ -251,7 +251,7 @@ extern unsigned long STREAM_TO_UINT32_f(char* p, unsigned short offset);
 #define STREAM_TO_UINT16(_p, _offset, _u16)	{_u16 = STREAM_TO_UINT16_f(_p, _offset);}
 //This macro is used for copying received stream to 32 bit in little endian format.
 #define STREAM_TO_UINT32(_p, _offset, _u32)	{_u32 = STREAM_TO_UINT32_f(_p, _offset);}
-#define STREAM_TO_STREAM(p, a, l) 	{register short _i; for (_i = 0; _i < l; _i++) *(a)++ = (unsigned char) p[_i];}
+#define STREAM_TO_STREAM(p, a, l) 	{register short _i; for (_i = 0; _i < l; _i++) *(a)++= ((unsigned char *) p)[_i];}
 
 
 

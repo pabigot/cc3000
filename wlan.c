@@ -44,10 +44,19 @@
 #include "hci.h"
 #include "spi.h"
 #include "socket.h"
+#include "nvmem.h"
+#include "security.h"
 #include "evnt_handler.h"
 #include "os.h"
 
-sSimplLinkInformation tSLInformation;
+volatile sSimplLinkInformation tSLInformation;
+
+#define SMART_CONFIG_PROFILE_SIZE		67		// 67 = 32 (max ssid) + 32 (max key) + 1 (SSID length) + 1 (security type) + 1 (key length)
+
+#ifndef CC3000_UNENCRYPTED_SMART_CONFIG
+unsigned char key[AES128_KEY_SIZE];	
+unsigned char profileArray[SMART_CONFIG_PROFILE_SIZE];
+#endif //CC3000_UNENCRYPTED_SMART_CONFIG
 
 /* patches type */
 #define PATCHES_HOST_TYPE_WLAN_DRIVER   0x01
@@ -81,6 +90,7 @@ sSimplLinkInformation tSLInformation;
 #define WLAN_ADD_PROFILE_WEP_PARAM_LEN			(36)
 #define WLAN_ADD_PROFILE_WPA_PARAM_LEN			(44)
 #define WLAN_CONNECT_PARAM_LEN					(29)
+#define WLAN_SMART_CONFIG_START_PARAMS_LEN		(4)
 
 
 
@@ -345,7 +355,7 @@ wlan_stop(void)
  * Connect to station
  *
  * \param[in]   sec_type  - security options:\n WLAN_SEC_UNSEC, 
- *       WLAN_SEC_WEP, WLAN_SEC_WPA or WLAN_SEC_WPA2
+ *       WLAN_SEC_WEP (ASCII support only) , WLAN_SEC_WPA or WLAN_SEC_WPA2
  * \param[in]   ssid  up  to 32 bytes and is ASCII SSID of the AP
  * \param[in]   ssid_len  A length of the SSID
  * \param[in]   bssid 6 bytes
@@ -361,7 +371,7 @@ wlan_stop(void)
  *
  * \sa  wlan disconnect        
  * \note        
- * \warning     
+ * \warning   Please Note that when connection to AP configured with security type WEP, please confirm that the key is set as ASCII and not as HEX.   
  */
 #ifndef CC3000_TINY_DRIVER
 long
@@ -725,6 +735,21 @@ wlan_add_profile(unsigned long ulSecType,
 
     return(ret);
 }
+#else
+long
+wlan_add_profile(unsigned long ulSecType, 
+										unsigned char* ucSsid,
+										unsigned long ulSsidLen, 
+										unsigned char *ucBssid,
+                                        unsigned long ulPriority,
+                                        unsigned long ulPairwiseCipher_Or_TxKeyLen,
+                                        unsigned long ulGroupCipher_TxKeyIndex,
+                                        unsigned long ulKeyMgmt,
+                                        unsigned char* ucPf_OrKey,
+                                        unsigned long ulPassPhraseLen)
+{
+	return -1;
+}
 #endif
 /**
  * \brief Delete WLAN profile
@@ -781,10 +806,10 @@ wlan_ioctl_del_profile(unsigned long ulIndex)
  *	- 4 Bytes: The status of the scan: 0 - agged results, 1 - results valid, 2 - no results
  *  - 56 bytes: Result entry, where the bytes are arranged as
  *    follows:
- *				- 1 bytes isValid - is result valid or not
- *				- 7 bytes rssi 			- RSSI value;	 
- *				- 2 bytes: securityMode - security mode of the AP: 0 - Open, 1 - WEP, 2 WPA, 3 WPA2
- *				- 6 bytes: SSID name length
+ *				- 1 bit isValid - is result valid or not
+ *				- 7 bits rssi 			- RSSI value;	 
+ *				- 2 bits: securityMode - security mode of the AP: 0 - Open, 1 - WEP, 2 WPA, 3 WPA2
+ *				- 6 bits: SSID name length
  *				- 2 bytes: the time at which the entry has entered into scans result table
  *				- 32 bytes: SSID name
  *				- 6 bytes:	BSSID
@@ -842,17 +867,21 @@ wlan_ioctl_get_scan_results(unsigned long ulScanTimeout,
  * start and stop scan procedure. 
  * Set scan parameters 
  *  
- * \param[in] uiEnable       start/stop scan (1=start scan with default interval value of 10 min. in order to set a diffrent scan interval value apply the value in miliseconds. minimum 1 second. 
- *                                            0=stop). Wlan reset (wlan_stop()  wlan_start()) is needed when changing scan interval value.
- *       Saved: No 
+ * \param[in] uiEnable - start/stop application scan 
+ *       (1=start scan with default interval value of 10 min. 
+ *       in order to set a diffrent scan interval value apply the value in
+ *       miliseconds. minimum 1 second. 0=stop). Wlan reset
+ *       (wlan_stop() wlan_start()) is needed when changing scan
+ *       interval value. Saved: No
  * \param[in] uiMinDwellTime   minimum dwell time value to be 
  *       used for each channel, in millisconds. Saved: yes
- *       Default: 20
+ *       Recommended Value: 100 (Default: 20)
  * \param[in] uiMaxDwellTime    maximum dwell time value to be 
  *       used for each channel, in millisconds. Saved: yes
- *       Default: 30
- * \param[in] uiNumOfProbeResponces  max probe request between 
- *       dwell time. Saved: yes. Default: 2 
+ *       Recommended Value: 100 (Default: 30)
+ * \param[in] uiNumOfProbeRequests  max probe request between 
+ *       dwell time. Saved: yes. Recommended Value: 5
+ *       (Default:2)
  *  
  * \param[in] uiChannelMask  bitwise, up to 13 channels 
  *       (0x1fff). Saved: yes. Default: 0x7ff
@@ -863,9 +892,9 @@ wlan_ioctl_get_scan_results(unsigned long ulScanTimeout,
  * \param[in] uiDefaultTxPower  probe Tx power. Saved: yes 
  *       Default: 205
  * \param[in] aiIntervalList    pointer to array with 16 entries
- *       (16 channels) each entry (unsigned int) holds timeout
- *       between scanning the next channel (in millisconds ).
- *       Saved: yes. Default 2000ms.
+ *       (16 channels) each entry (unsigned long) holds timeout
+ *       between periodic scan (connection scan) - in
+ *       millisconds. Saved: yes. Default 2000ms.
  *  
  * \return  On success, zero is returned. On error, -1 is 
  *            returned 
@@ -876,7 +905,7 @@ wlan_ioctl_get_scan_results(unsigned long ulScanTimeout,
 #ifndef CC3000_TINY_DRIVER
 long
 wlan_ioctl_set_scan_params(unsigned long uiEnable, unsigned long uiMinDwellTime,unsigned long uiMaxDwellTime,
-										   unsigned long uiNumOfProbeResponces,unsigned long uiChannelMask,
+										   unsigned long uiNumOfProbeRequests,unsigned long uiChannelMask,
 										   long iRSSIThreshold,unsigned long uiSNRThreshold,
 										   unsigned long uiDefaultTxPower, unsigned long *aiIntervalList)
 {
@@ -894,7 +923,7 @@ wlan_ioctl_set_scan_params(unsigned long uiEnable, unsigned long uiMinDwellTime,
 	args = UINT32_TO_STREAM(args, uiEnable);
 	args = UINT32_TO_STREAM(args, uiMinDwellTime);
 	args = UINT32_TO_STREAM(args, uiMaxDwellTime);
-	args = UINT32_TO_STREAM(args, uiNumOfProbeResponces);
+	args = UINT32_TO_STREAM(args, uiNumOfProbeRequests);
 	args = UINT32_TO_STREAM(args, uiChannelMask);
 	args = UINT32_TO_STREAM(args, iRSSIThreshold);
 	args = UINT32_TO_STREAM(args, uiSNRThreshold);
@@ -1030,37 +1059,45 @@ wlan_ioctl_statusget(void)
 /**
  * \brief Start acquire profile
  *
- * Start to acquire device profile. Device scans messages from 
- * station with specific prefix SSID 
- * (wlan_simple_config_set_prefix). The device acquire his own 
+ * Start to acquire device profile. The device acquire its own 
  * profile, if profile message is found. The acquired AP information is
- * stored in the profiles table of CC3000.After the profile is acquired the
- * behavior is as defined by policy. \n 
+ * stored in CC3000 EEPROM only in case AES128 encryption is used.
+ * In case AES128 encryption is not used, a profile is created by CC3000 internally.\n 
  *  
+ * \param[in] algoEncryptedFlag indicates whether the information is encrypted
+ *
  * \return  On success, zero is returned. On error, -1 is 
  *            returned 
- * \sa   wlan_firs_time_config_set_prefix  wlan_first_time_config_stop
- * \note    An asynchnous event - First Time Config Done will be generated as soon as the process finishes successfully
+ * \sa   wlan_smart_config_set_prefix  wlan_smart_config_stop
+ * \note    An asynchnous event - Smart Config Done will be generated as soon as the process finishes successfully
  * \warning     
  */
 long
-wlan_first_time_config_start(void)
+wlan_smart_config_start(unsigned long algoEncryptedFlag)
 {
     long ret;
     unsigned char *ptr;
+    unsigned char *args;
 
     ret = EFAIL;
     ptr = tSLInformation.pucTxCommandBuffer;
+    args = (unsigned char *)(ptr + HEADERS_SIZE_CMD);
 
-    hci_command_send(HCI_CMND_WLAN_IOCTL_SIMPLE_CONFIG_START, ptr, 0);
+    //
+    // Fill in HCI packet structure
+    //
+    args = UINT32_TO_STREAM(args, algoEncryptedFlag);
+    ret = EFAIL;
+
+    hci_command_send(HCI_CMND_WLAN_IOCTL_SIMPLE_CONFIG_START, ptr, WLAN_SMART_CONFIG_START_PARAMS_LEN);
 
     
-   	//
-	// Wait for command complete event
-	//
-	SimpleLinkWaitEvent(HCI_CMND_WLAN_IOCTL_SIMPLE_CONFIG_START, &ret);
+   //
+   // Wait for command complete event
+   //
+   SimpleLinkWaitEvent(HCI_CMND_WLAN_IOCTL_SIMPLE_CONFIG_START, &ret);
 
-    return(ret);    
+   return(ret);    
 }
 
 
@@ -1072,12 +1109,12 @@ wlan_first_time_config_start(void)
  * \return  On success, zero is returned. On error, -1 is 
  *            returned 
  *
- * \sa   wlan_fisrt_time_config_start  wlan_first_time_config_set_prefix
+ * \sa   wlan_smart_config_start  wlan_smart_config_set_prefix
  * \note      
  * \warning     
  */
 long
-wlan_first_time_config_stop(void)
+wlan_smart_config_stop(void)
 {
     long ret;
     unsigned char *ptr;
@@ -1099,8 +1136,9 @@ wlan_first_time_config_stop(void)
 /**
  * \brief config set prefix
  *  
- * Configure station ssid prefix. The prefix is used to identify
- * the station that broadcast device profile. 
+ * Configure station ssid prefix. 
+ * The prefix is used internally in CC3000.
+ * It should always be TTT. 
  *
  * \param[in] newPrefix  3 bytes identify the SSID prefix for 
  *       the Simple Config.
@@ -1108,13 +1146,13 @@ wlan_first_time_config_stop(void)
  * \return  On success, zero is returned. On error, -1 is 
  *            returned   
  *
- * \sa   wlan_fist_time_config_start  wlan_first_time_config_stop
+ * \sa   wlan_smart_config_start  wlan_smart_config_stop
  * \note        The prefix is stored in CC3000 NVMEM.\n
  * \warning     
  */
 
 long
-wlan_first_time_config_set_prefix(char* cNewPrefix)
+wlan_smart_config_set_prefix(char* cNewPrefix)
 {
     long ret;
     unsigned char *ptr;
@@ -1126,6 +1164,12 @@ wlan_first_time_config_set_prefix(char* cNewPrefix)
     
     if (cNewPrefix == NULL)
         return ret;
+    else	// with the new Smart Config, prefix must be TTT
+    {
+    	*cNewPrefix = 'T';
+	*(cNewPrefix + 1) = 'T';
+	*(cNewPrefix + 2) = 'T';
+    }
 
 	ARRAY_TO_STREAM(args, cNewPrefix, SL_SIMPLE_CONFIG_PREFIX_LENGTH);
 
@@ -1138,6 +1182,130 @@ wlan_first_time_config_set_prefix(char* cNewPrefix)
 
     return(ret);    
 }
+
+/**
+ * \brief process the acquired data and store it as a profile
+ *
+ * The acquired AP information is stored in CC3000 EEPROM encrypted.
+ * The encrypted data is decrypted and storred as a profile. 
+ * behavior is as defined by policy. \n 
+ *  
+ * \return  On success, zero is returned. On error, -1 is 
+ *            returned 
+ * \sa   
+ * \note    
+ * \warning     
+ */
+
+#ifndef CC3000_UNENCRYPTED_SMART_CONFIG
+long
+wlan_smart_config_process()
+{
+	signed long	returnValue;
+	unsigned long ssidLen, keyLen;
+	unsigned char *decKeyPtr;
+	unsigned char *ssidPtr;
+
+	 // read the key from EEPROM - fileID 12
+       returnValue = aes_read_key(key);
+
+	 if (returnValue != 0)
+		return returnValue;
+        
+	// read the received data from fileID #13 and parse it according to the followings:
+	// 1) SSID LEN - not encrypted
+	// 2) SSID - not encrypted
+	// 3) KEY LEN - not encrypted. always 32 bytes long
+	// 4) Security type - not encrypted
+	// 5) KEY - encrypted together with true key length as the first byte in KEY
+	//	 to elaborate, there are two corner cases:
+	//		1) the KEY is 32 bytes long. In this case, the first byte does not represent KEY length
+	//		2) the KEY is 31 bytes long. In this case, the first byte represent KEY length and equals 31
+	returnValue = nvmem_read(NVMEM_SHARED_MEM_FILEID, SMART_CONFIG_PROFILE_SIZE, 0, profileArray);
+
+	if (returnValue != 0)
+		return returnValue;
+
+	ssidPtr = &profileArray[1];
+
+	ssidLen = profileArray[0];
+	
+	decKeyPtr = &profileArray[profileArray[0] + 3];
+
+       aes_decrypt(decKeyPtr, key);
+       if (profileArray[profileArray[0] + 1] > 16)
+       	aes_decrypt((unsigned char *)(decKeyPtr + 16), key);
+
+	if (*(unsigned char *)(decKeyPtr +31) != 0)
+	{
+		if (*decKeyPtr == 31)
+		{
+			keyLen = 31;
+			decKeyPtr++;
+		}
+		else
+		{
+			keyLen = 32;
+		}
+	}
+	else
+	{
+		keyLen = *decKeyPtr;
+		decKeyPtr++;
+	}
+        
+	// add a profile
+	 switch (profileArray[profileArray[0] + 2])
+	 {
+	 	case WLAN_SEC_UNSEC://None
+	 	{
+			returnValue = wlan_add_profile(profileArray[profileArray[0] + 2], 	// security type
+										ssidPtr,		 					// SSID
+										ssidLen, 							// SSID length
+										NULL, 							// BSSID
+										1,								// Priority
+										0, 0, 0, 0, 0);
+
+			break;
+	 	}
+
+		case WLAN_SEC_WEP://WEP
+		{
+			returnValue = wlan_add_profile(profileArray[profileArray[0] + 2], 	// security type
+										ssidPtr, 							// SSID
+										ssidLen, 							// SSID length
+										NULL, 							// BSSID
+										1,								// Priority
+										keyLen,							// KEY length
+										0, 								// KEY index
+										0,
+										decKeyPtr,						// KEY
+										0);
+
+			break;
+		}
+
+		case WLAN_SEC_WPA://WPA
+              case WLAN_SEC_WPA2://WPA2
+              {
+			  returnValue = wlan_add_profile(WLAN_SEC_WPA2, 	// security type
+										ssidPtr,
+										ssidLen,
+										NULL, 							// BSSID
+										1,								// Priority
+										0x18,							// PairwiseCipher
+										0x1e, 							// GroupCipher
+										2,								// KEY management
+										decKeyPtr,						// KEY
+										keyLen);							// KEY length
+
+			break;
+		}
+	 }
+
+	 return returnValue;
+}
+#endif //CC3000_UNENCRYPTED_SMART_CONFIG		
 
 //*****************************************************************************
 //

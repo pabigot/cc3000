@@ -118,11 +118,11 @@ long netapp_dhcp(unsigned long *aucIP, unsigned long *aucSubnetMask,unsigned lon
     //
     // Fill in temporary command buffer
     //
-    args = UINT32_TO_STREAM(args, *aucIP);
-	args = UINT32_TO_STREAM(args, *aucSubnetMask);
-	args = UINT32_TO_STREAM(args, *aucDefaultGateway);
+	ARRAY_TO_STREAM(args,aucIP,4);
+	ARRAY_TO_STREAM(args,aucSubnetMask,4);
+	ARRAY_TO_STREAM(args,aucDefaultGateway,4);
 	args = UINT32_TO_STREAM(args, 0);
-	args = UINT32_TO_STREAM(args, *aucDNSServer);
+	ARRAY_TO_STREAM(args,aucDNSServer,4);
 	
     //
     // Initiate a HCI command
@@ -398,6 +398,11 @@ void netapp_ipconfig( tNetappIpconfigRetArgs * ipconfig )
 	// Wait for command complete event
 	//
 	SimpleLinkWaitEvent(HCI_NETAPP_IPCONFIG, ipconfig );
+
+}
+#else
+void netapp_ipconfig( tNetappIpconfigRetArgs * ipconfig )
+{
 
 }
 #endif

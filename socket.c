@@ -46,6 +46,8 @@
 #include "hci.h"
 #include "socket.h"
 #include "evnt_handler.h"
+#include "netapp.h"
+
 
 
 //Enable this flag if and only if you must comply with BSD socket close() function
@@ -71,6 +73,7 @@
 #define SOCKET_GET_SOCK_OPT_PARAMS_LEN		(12)
 #define SOCKET_RECV_FROM_PARAMS_LEN			(12)
 #define SOCKET_SENDTO_PARAMS_LEN			(24)
+#define SOCKET_MDNS_ADVERTISE_PARAMS_LEN	(12)
 
 //
 // The legnth of arguments for the SEND command: sd + buff_offset + len + flags, while size of each parameter
@@ -85,6 +88,8 @@
 
 #define SIMPLE_LINK_HCI_CMND_TRANSPORT_HEADER_SIZE  (SPI_HEADER_SIZE + SIMPLE_LINK_HCI_CMND_HEADER_SIZE)
 
+#define MDNS_DEVICE_SERVICE_MAX_LENGTH 	(32)
+
 
 //*****************************************************************************
 //
@@ -92,8 +97,9 @@
 //!
 //!  \param  blocked - BUFF_MNGR_BLOCK or BUFF_MNGR_NOBLOCK
 //!
-//!  \return current number of free buffers, or EFAIL,
-//!          if no free buffers present
+//!  \return 0 in case there are buffers available, 
+//!          -1 in case of bad socket
+//!          -2 if there are no free buffers present (only when SEND_NON_BLOCKING is enabled)
 //!
 //!  \brief  if blocked is BUFF_MNGR_BLOCK - block until have free pages,
 //!          else return EFAIL and set errno to EAGAIN
@@ -102,6 +108,7 @@
 int
 HostFlowControlConsumeBuff(int sd)
 {
+#ifndef SEND_NON_BLOCKING
     /* wait in busy loop */
     do
     {
@@ -123,6 +130,31 @@ HostFlowControlConsumeBuff(int sd)
     tSLInformation.usNumberOfFreeBuffers--;
 
     return 0;
+#else
+        //
+        // In case last transmission failed then we will return the last failure reason here
+        // Note that the buffer will not be allocated in this case
+        //
+        if (tSLInformation.slTransmitDataError != 0)
+        {
+            errno = tSLInformation.slTransmitDataError;
+            tSLInformation.slTransmitDataError = 0;
+            return errno;
+        }
+        if(SOCKET_STATUS_ACTIVE != get_socket_active_status(sd))
+           return -1;
+        //If there are no available buffers, return -2. It is recommended to use select or receive 
+        //to see if there is any buffer occupied with received data. If so, call receive() to release the buffer.
+		if(0 == tSLInformation.usNumberOfFreeBuffers)
+        {
+            return -2;
+        }
+        else
+        {
+            tSLInformation.usNumberOfFreeBuffers--;
+            return 0;
+        }
+#endif
 }
 
 /**
@@ -751,12 +783,12 @@ select(long nfds, fd_set *readsds, fd_set *writesds, fd_set *exceptsds,
  *            returned 
  * \sa getsockopt
  * \note On this version the following socket options are enabled:
- *			- SOL_SOCKET (optname). SOL_SOCKET configures socket level
+ *			The protocol level supported in this version is SOL_SOCKET (level).
  *			- SOCKOPT_RECV_TIMEOUT (optname)
- *			  SOCKOPT_RECV_TIMEOUT configures recv and recvfrom timeout. 
- *			  In that case optval should be pointer to unsigned long
- *			- SOCK_NONBLOCK (optname). set socket non-blocking mode is on or off
- *			  SOCK_ON or SOCK_OFF (optval)
+ *			  SOCKOPT_RECV_TIMEOUT configures recv and recvfrom timeout in milliseconds. 
+ *			  In that case optval should be pointer to unsigned long.
+ *			- SOCKOPT_NONBLOCK (optname). sets the socket non-blocking mode on or off.
+ *			  In that case optval should be SOCK_ON or SOCK_OFF (optval).
  *        
  * \warning
  */
@@ -1031,7 +1063,7 @@ recvfrom(long sd, void *buf, long len, long flags, sockaddr *from,
 //!  @param tolen    destination address strcutre size
 //!
 //!  @return         Return the number of bytes transmited, or -1 if an error
-//!                  occurred
+//!                  occurred, or -2 in case there are no free buffers available (only when SEND_NON_BLOCKING is enabled)
 //!
 //!  @brief          This function is used to transmit a message to another
 //!                  socket
@@ -1198,4 +1230,54 @@ sendto(long sd, const void *buf, long len, long flags, const sockaddr *to,
        socklen_t tolen)
 {
     return(simple_link_send(sd, buf, len, flags, to, tolen, HCI_CMND_SENDTO));
+}
+
+
+/**
+ * \Set CC3000 in mDNS advertiser mode in order to advertise itself
+ * 
+ * This function is used to make the CC3000 seen by mDNS browsers
+ * \param[in] mdnsEnabled          		flag to enable/disable the mDNS feature
+ * \param[in] deviceServiceName    		the service name as part of the published canonical domain name
+ * \param[in] deviceServiceNameLength     the length of the service name
+ * \return   On success, zero is returned,    return SOC_ERROR if socket was not opened successfully, or if an error occurred.
+ *
+ * \sa   
+ * \note 
+ * \warning   
+ */
+int
+mdnsAdvertiser(unsigned short mdnsEnabled, char * deviceServiceName, unsigned short deviceServiceNameLength)
+{
+	int ret;
+ 	unsigned char *pTxBuffer, *pArgs;
+
+	if (deviceServiceNameLength > MDNS_DEVICE_SERVICE_MAX_LENGTH)
+	{
+	    return EFAIL;
+	}
+	
+    	pTxBuffer = tSLInformation.pucTxCommandBuffer;
+	pArgs = (pTxBuffer + SIMPLE_LINK_HCI_CMND_TRANSPORT_HEADER_SIZE);
+
+	//
+	// Fill in HCI packet structure
+	//
+	pArgs = UINT32_TO_STREAM(pArgs, mdnsEnabled);
+	pArgs = UINT32_TO_STREAM(pArgs, 8);
+	pArgs = UINT32_TO_STREAM(pArgs, deviceServiceNameLength);
+	ARRAY_TO_STREAM(pArgs, deviceServiceName, deviceServiceNameLength);
+
+	//
+	// Initiate a HCI command
+	//
+	hci_command_send(HCI_CMND_MDNS_ADVERTISE, pTxBuffer, SOCKET_MDNS_ADVERTISE_PARAMS_LEN + deviceServiceNameLength);
+
+	//
+	// Since we are in blocking state - wait for event complete
+	//
+	SimpleLinkWaitEvent(HCI_EVNT_MDNS_ADVERTISE, &ret);
+
+	return ret;
+
 }

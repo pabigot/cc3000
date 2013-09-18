@@ -61,7 +61,7 @@ extern "C" {
 **	Definitions for File IDs
 **	
 ****************************************************************************/
-/* NVMEM file ID */
+/* NVMEM file ID - system files*/
 #define NVMEM_NVS_FILEID 							(0)
 #define NVMEM_NVS_SHADOW_FILEID 					(1)
 #define NVMEM_WLAN_CONFIG_FILEID 					(2)
@@ -75,8 +75,12 @@ extern "C" {
 #define NVMEM_BOOTLOADER_SP_FILEID 					(10)
 #define NVMEM_RM_FILEID			 					(11)
 
+/* NVMEM file ID - user files*/
+#define NVMEM_AES128_KEY_FILEID	 					(12)
+#define NVMEM_SHARED_MEM_FILEID	 					(13)
+
 /*  max entry in order to invalid nvmem              */
-#define NVMEM_MAX_ENTRY                              (14)
+#define NVMEM_MAX_ENTRY                              (16)
 
 
 /*****************************************************************************
@@ -93,7 +97,8 @@ extern "C" {
  * NVMEM_WLAN_DRIVER_SP_FILEID, NVMEM_WLAN_FW_SP_FILEID,
  * NVMEM_MAC_FILEID, NVMEM_FRONTEND_VARS_FILEID,
  * NVMEM_IP_CONFIG_FILEID, NVMEM_IP_CONFIG_SHADOW_FILEID,
- * NVMEM_BOOTLOADER_SP_FILEID or NVMEM_RM_FILEID.
+ * NVMEM_BOOTLOADER_SP_FILEID, NVMEM_RM_FILEID,
+ * and user files 12-15
  * \param[in] ulLength   number of bytes to read  
  * \param[in] ulOffset   ulOffset in file from where to read  
  * \param[out] buff    output buffer pointer
@@ -109,6 +114,30 @@ extern "C" {
 extern signed long nvmem_read(unsigned long file_id, unsigned long length, unsigned long offset, unsigned char *buff);
 
 
+/*****************************************************************************
+ * \brief Write data to nvmem.
+ *  
+ * writes data to file referred by the ulFileId parameter. 
+ * Writes data to file  ulOffset till ulLength. The file id will be 
+ * marked invalid till the write is done. The file entry doesn't
+ * need to be valid - only allocated.
+ *  
+ * \param[in] ulFileId   nvmem file id:\n
+ * NVMEM_WLAN_DRIVER_SP_FILEID, NVMEM_WLAN_FW_SP_FILEID,
+ * NVMEM_MAC_FILEID, NVMEM_BOOTLOADER_SP_FILEID,
+ * and user files 12-15
+ * \param[in] ulLength    number of bytes to write   
+ * \param[in] ulEntryOffset  offset in file to start write operation from    
+ * \param[in] buff      data to write 
+ *
+ * \return	  on succes 0, error otherwise.
+ *
+ * \sa
+ * \note
+ * \warning
+ *
+ *****************************************************************************/
+extern signed long nvmem_write(unsigned long ulFileId, unsigned long ulLength, unsigned long ulEntryOffset, unsigned char *buff);
 
 
 /*****************************************************************************
@@ -187,6 +216,30 @@ extern	unsigned char nvmem_write_patch(unsigned long ulFileId, unsigned long spL
 #ifndef CC3000_TINY_DRIVER 
 extern	unsigned char nvmem_read_sp_version(unsigned char* patchVer);
 #endif
+/*****************************************************************************
+ * \brief Create new file entry and allocate space on the NVMEM. 
+ * Applies only to user files.
+ *  
+ * Modify the size of file.\n
+ * If the entry is unallocated - allocate it to size ulNewLen (marked invalid).\n
+ * If it is allocated then deallocate it first.\n
+ * To just mark the file as invalid without resizing - set ulNewLen=0.\n
+ * 
+ * \param[in] ulFileId   nvmem file Id:\n
+ * NVMEM_AES128_KEY_FILEID: 12
+ * NVMEM_SHARED_MEM_FILEID: 13
+ * and fileIDs 14 and 15
+ * \param[in] ulNewLen    entry ulLength  
+ *
+ * \return  on success 0, error otherwise.	            
+ *
+ * \sa
+ * \note
+ * \warning
+ *
+ *****************************************************************************/
+extern signed long nvmem_create_entry(unsigned long file_id, unsigned long newlen);
+
 
 //*****************************************************************************
 //

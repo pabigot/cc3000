@@ -60,7 +60,6 @@ extern "C" {
 
 
 
-
 /**
  * \brief Initialize wlan driver
  *
@@ -152,7 +151,7 @@ extern void wlan_stop(void);
  * Connect to station
  *
  * \param[in]   sec_type  - security options:\n WLAN_SEC_UNSEC, 
- *       WLAN_SEC_WEP, WLAN_SEC_WPA or WLAN_SEC_WPA2
+ *       WLAN_SEC_WEP (ASCII support only) , WLAN_SEC_WPA or WLAN_SEC_WPA2
  * \param[in]   ssid  up  to 32 bytes and is ASCII SSID of the AP
  * \param[in]   ssid_len  A length of the SSID
  * \param[in]   bssid 6 bytes
@@ -168,7 +167,7 @@ extern void wlan_stop(void);
  *
  * \sa  wlan disconnect        
  * \note        
- * \warning     
+ * \warning   Please Note that when connection to AP configured with security type WEP, please confirm that the key is set as ASCII and not as HEX.   
  */
 #ifndef CC3000_TINY_DRIVER
 extern long wlan_connect(unsigned long ulSecType, char *ssid, long ssid_len,
@@ -228,7 +227,7 @@ extern long wlan_disconnect(void);
  */
 
 
-#ifndef CC3000_TINY_DRIVER
+
 extern long wlan_add_profile(unsigned long ulSecType, unsigned char* ucSsid,
 										 unsigned long ulSsidLen, 
 										 unsigned char *ucBssid,
@@ -239,7 +238,7 @@ extern long wlan_add_profile(unsigned long ulSecType, unsigned char* ucSsid,
                                          unsigned char* ucPf_OrKey,
                                          unsigned long ulPassPhraseLen);
 
-#endif
+
 
 /**
  * \brief Delete WLAN profile
@@ -349,15 +348,17 @@ extern long wlan_ioctl_set_connection_policy(
  * \brief Gets the WLAN scan operation results
  *
  * Gets entry from scan result table.
- * The scan results are returned one by one, and each entry represents a single AP found in the area. The following is a format of hte scan result:
+ * The scan results are returned one by one, and each entry 
+ * represents a single AP found in the area. The following is a 
+ * format of the scan result: 
  *	- 4 Bytes: number of networks found
  *	- 4 Bytes: The status of the scan: 0 - agged results, 1 - results valid, 2 - no results
  *  - 56 bytes: Result entry, where the bytes are arranged as
  *    follows:
- *				- 1 bytes isValid - is result valid or not
- *				- 7 bytes rssi 			- RSSI value;	 
- *				- 2 bytes: securityMode - security mode of the AP: 0 - Open, 1 - WEP, 2 WPA, 3 WPA2
- *				- 6 bytes: SSID name length
+ *				- 1 bit isValid - is result valid or not
+ *				- 7 bits rssi 			- RSSI value;	 
+ *				- 2 bits: securityMode - security mode of the AP: 0 - Open, 1 - WEP, 2 WPA, 3 WPA2
+ *				- 6 bits: SSID name length
  *				- 2 bytes: the time at which the entry has entered into scans result table
  *				- 32 bytes: SSID name
  *				- 6 bytes:	BSSID
@@ -384,17 +385,22 @@ extern long wlan_ioctl_get_scan_results(unsigned long ulScanTimeout,
  * start and stop scan procedure. 
  * Set scan parameters 
  *  
- * \param[in] uiEnable       start/stop scan (1=start scan with default interval value of 10 min. in order to set a diffrent scan interval value apply the value in miliseconds. minimum 1 second. 
- *                                            0=stop).  Wlan reset (wlan_stop()  wlan_start()) is needed when changing scan interval value.
- *       Saved: No 
+ * \param[in] uiEnable - start/stop application scan 
+ *                                            (1=start scan with
+ *       default interval value of 10 min. in order to set a
+ *       diffrent scan interval value apply the value in
+ *       miliseconds. minimum 1 second. 0=stop). Wlan reset
+ *       (wlan_stop() wlan_start()) is needed when changing scan
+ *       interval value. Saved: No
  * \param[in] uiMinDwellTime   minimum dwell time value to be 
  *       used for each channel, in millisconds. Saved: yes
- *       Default: 20
+ *       Recommended Value: 100 (Default: 20)
  * \param[in] uiMaxDwellTime    maximum dwell time value to be 
  *       used for each channel, in millisconds. Saved: yes
- *       Default: 30
- * \param[in] uiNumOfProbeResponces  max probe request between 
- *       dwell time. Saved: yes. Default: 2 
+ *       Recommended Value: 100 (Default: 30)
+ * \param[in] uiNumOfProbeRequests  max probe request between 
+ *       dwell time. Saved: yes. Recommended Value: 5
+ *       (Default:2)
  *  
  * \param[in] uiChannelMask  bitwise, up to 13 channels 
  *       (0x1fff). Saved: yes. Default: 0x7ff
@@ -405,9 +411,9 @@ extern long wlan_ioctl_get_scan_results(unsigned long ulScanTimeout,
  * \param[in] uiDefaultTxPower  probe Tx power. Saved: yes 
  *       Default: 205
  * \param[in] aiIntervalList    pointer to array with 16 entries
- *       (16 channels) each entry (unsigned int) holds timeout
- *       between scanning the next channel (in millisconds ).
- *       Saved: yes. Default 2000ms.
+ *       (16 channels) each entry (unsigned long) holds timeout
+ *       between periodic scan (connection scan) - in
+ *       millisconds. Saved: yes. Default 2000ms.
  *  
  * \return  On success, zero is returned. On error, -1 is 
  *            returned 
@@ -416,32 +422,33 @@ extern long wlan_ioctl_get_scan_results(unsigned long ulScanTimeout,
  * \warning     
  */
 
-
-extern long wlan_ioctl_set_scan_params(unsigned long uiEnable,unsigned long uiMinDwellTime,unsigned long uiMaxDwellTime,
-										   unsigned long uiNumOfProbeResponces,unsigned long uiChannelMask,
+extern long wlan_ioctl_set_scan_params(unsigned long uiEnable, unsigned long uiMinDwellTime,unsigned long uiMaxDwellTime,
+										   unsigned long uiNumOfProbeRequests,unsigned long uiChannelMask,
 										   long iRSSIThreshold,unsigned long uiSNRThreshold,
 										   unsigned long uiDefaultTxPower, unsigned long *aiIntervalList);
+
                                            
 
 /**
  * \brief Start acquire profile
  *
- * Start to acquire device profile. Device scans messages from 
- * station with specific prefix SSID 
- * (wlan_simple_config_set_prefix). The device acquire his own 
+ * Start to acquire device profile. The device acquire its own 
  * profile, if profile message is found. The acquired AP information is
- * stored in the profiles table of CC3000.After the profile is acquired the
- * behavior is as defined by policy. \n 
+ * stored in CC3000 EEPROM only in case AES128 encryption is used.
+ * In case AES128 encryption is not used, a profile is created by CC3000 internally.\n 
  *  
+ * \param[in] algoEncryptedFlag indicates whether the information is encrypted
+ *
  * \return  On success, zero is returned. On error, -1 is 
  *            returned 
- * \sa   wlan_smart_config_set_prefix  wlan_smart_config_stop 
- * \note    An asynchnous event - Simple Config Done will be generated as soon as the process finishes successfully    
+ * \sa   wlan_smart_config_set_prefix  wlan_smart_config_stop
+ * \note    An asynchnous event - Smart Config Done will be generated as soon as the process finishes successfully
  * \warning     
  */
+
                                            
                                            
-extern long wlan_first_time_config_start(void);
+extern long wlan_smart_config_start(unsigned long algoEncryptedFlag);
 
 
 /**
@@ -452,19 +459,20 @@ extern long wlan_first_time_config_start(void);
  * \return  On success, zero is returned. On error, -1 is 
  *            returned 
  *
- * \sa   wlan_first_time_config_start  wlan_first_time_config_set_prefix
+ * \sa   
  * \note      
  * \warning     
  */
 
-extern long wlan_first_time_config_stop(void);
+extern long wlan_smart_config_stop(void);
 
 
 /**
  * \brief config set prefix
  *  
- * Configure station ssid prefix. The prefix is used to identify
- * the station that broadcast device profile. 
+ * Configure station ssid prefix. 
+ * The prefix is used internally in CC3000.
+ * It should always be TTT. 
  *
  * \param[in] newPrefix  3 bytes identify the SSID prefix for 
  *       the Simple Config.
@@ -472,12 +480,30 @@ extern long wlan_first_time_config_stop(void);
  * \return  On success, zero is returned. On error, -1 is 
  *            returned   
  *
- * \sa   wlan_first_time_config_start  wlan_first_time_config_stop
+ * \sa   
  * \note        The prefix is stored in CC3000 NVMEM.\n
  * \warning     
  */
 
-extern long wlan_first_time_config_set_prefix(char* cNewPrefix);
+extern long wlan_smart_config_set_prefix(char* cNewPrefix);
+
+
+/**
+ * \brief process the acquired data and store it as a profile
+ *
+ * The acquired AP information is stored in CC3000 EEPROM encrypted.
+ * The encrypted data is decrypted and storred as a profile. 
+ * behavior is as defined by policy. \n 
+ *
+ * \param[in] algoEncryptedFlag indicates whether the information is encrypted
+ *  
+ * \return  On success, zero is returned. On error, -1 is 
+ *            returned 
+ * \sa   
+ * \note    
+ * \warning     
+ */
+extern long wlan_smart_config_process(void);
 
 //*****************************************************************************
 //
