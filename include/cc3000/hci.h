@@ -101,6 +101,7 @@ extern "C" {
 #define  HCI_CMND_CLOSE_SOCKET  0x100B
 #define  HCI_CMND_RECVFROM      0x100D
 #define  HCI_CMND_GETHOSTNAME   0x1010
+#define  HCI_CMND_MDNS_ADVERTISE	   0x1011
 
 
 #define HCI_DATA_BASE								0x80
@@ -139,6 +140,7 @@ extern "C" {
 
 
 
+
 //*****************************************************************************
 //
 // Values that can be used as HCI Events defines
@@ -164,6 +166,7 @@ extern "C" {
 #define  HCI_EVNT_SETSOCKOPT          HCI_CMND_SETSOCKOPT
 #define  HCI_EVNT_GETSOCKOPT          HCI_CMND_GETSOCKOPT
 #define  HCI_EVNT_BSD_GETHOSTBYNAME   HCI_CMND_GETHOSTNAME
+#define  HCI_EVNT_MDNS_ADVERTISE   HCI_CMND_MDNS_ADVERTISE
  
 #define  HCI_EVNT_SEND          0x1003
 #define  HCI_EVNT_WRITE         0x100E
@@ -183,6 +186,7 @@ extern "C" {
 #define HCI_EVNT_WLAN_ASYNC_PING_REPORT  (0x0040 + HCI_EVNT_WLAN_UNSOL_BASE)
 #define HCI_EVNT_WLAN_ASYNC_SIMPLE_CONFIG_DONE  (0x0080 + HCI_EVNT_WLAN_UNSOL_BASE)
 #define HCI_EVNT_WLAN_KEEPALIVE			 (0x0200  + HCI_EVNT_WLAN_UNSOL_BASE)
+#define	HCI_EVNT_BSD_TCP_CLOSE_WAIT      (0x0800 + HCI_EVNT_WLAN_UNSOL_BASE)
 
 #define HCI_EVNT_DATA_UNSOL_FREE_BUFF \
                                 0x4100
@@ -235,10 +239,40 @@ extern "C" {
 // Prototypes for the APIs.
 //
 //*****************************************************************************
+
+//*****************************************************************************
+//
+//!  hci_command_send
+//!
+//!  @param  usOpcode     command operation code
+//!  @param  pucBuff      pointer to the command's arguments buffer
+//!  @param  ucArgsLength length of the arguments
+//!
+//!  @return              none
+//!
+//!  @brief               Initiate an HCI command.
+//
+//*****************************************************************************
 extern unsigned short hci_command_send(unsigned short usOpcode, 
                                    unsigned char *ucArgs,
                                    unsigned char ucArgsLength);
  
+
+//*****************************************************************************
+//
+//!  hci_data_send
+//!
+//!  @param  usOpcode        command operation code
+//!	 @param  ucArgs					 pointer to the command's arguments buffer
+//!  @param  usArgsLength    length of the arguments
+//!  @param  ucTail          pointer to the data buffer
+//!  @param  usTailLength    buffer length
+//!
+//!  @return none
+//!
+//!  @brief              Initiate an HCI data write operation
+//
+//*****************************************************************************
 extern long hci_data_send(unsigned char ucOpcode,
                                       unsigned char *ucArgs,
                                       unsigned short usArgsLength,
@@ -246,9 +280,38 @@ extern long hci_data_send(unsigned char ucOpcode,
                                       const unsigned char *ucTail,
                                       unsigned short usTailLength);
 
+
+//*****************************************************************************
+//
+//!  hci_data_command_send
+//!
+//!  @param  usOpcode      command operation code
+//!  @param  pucBuff       pointer to the data buffer
+//!  @param  ucArgsLength  arguments length
+//!  @param  ucDataLength  data length
+//!
+//!  @return none
+//!
+//!  @brief              Prepare HCI header and initiate an HCI data write operation
+//
+//*****************************************************************************
 extern void hci_data_command_send(unsigned short usOpcode, unsigned char *pucBuff,
                      unsigned char ucArgsLength, unsigned short ucDataLength);
 
+//*****************************************************************************
+//
+//!  hci_patch_send
+//!
+//!  @param  usOpcode      command operation code
+//!  @param  pucBuff       pointer to the command's arguments buffer
+//!  @param  patch         pointer to patch content buffer 
+//!  @param  usDataLength  data length
+//!
+//!  @return              none
+//!
+//!  @brief               Prepare HCI header and initiate an HCI patch write operation
+//
+//*****************************************************************************
 extern void hci_patch_send(unsigned char ucOpcode, unsigned char *pucBuff, char *patch, unsigned short usDataLength);
 
 

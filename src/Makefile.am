@@ -11,4 +11,4 @@ cc3000dir = ${libdir}
 cc3000_LTLIBRARIES = libcc3000.la
 libcc3000_la_SOURCES = \
 	cc3000_common.c	evnt_handler.c hci.c netapp.c nvmem.c os.c \
-	socket.c wlan.c
+	socket.c wlan.c security.c

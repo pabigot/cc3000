@@ -7,4 +7,4 @@ cc3000incdir = ${includedir}/cc3000
 cc3000inc_HEADERS = \
 	cc3000_common.h evnt_handler.h hci.h host_driver_version.h \
 	netapp.h nvmem.h os.h socket.h wlan.h \
-	spi.h
+	spi.h security.h
