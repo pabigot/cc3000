@@ -29,6 +29,12 @@ Example of configuration and installation assuming mspgcc is installed:
   make
   make install
 
+To configure for TivaWare for C Series using GCC:
+
+  ./configure --prefix=/prj/arm/tm4c \
+     --host=arm-none-eabi \
+     TARGET_CFLAGS='-mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=softfp'
+
 Versioning Information
 ----------------------
 

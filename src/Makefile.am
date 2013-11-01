@@ -1,5 +1,6 @@
 ACLOCAL_AMFLAGS = -I m4
 AM_CPPFLAGS = -I${top_srcdir}/include
+AM_CFLAGS = $(TARGET_CFLAGS)
 
 # For MSP430, optimize for size
 @WITH_MSP430_TRUE@ AM_CFLAGS += -Os

@@ -23,6 +23,11 @@ AC_NO_EXECUTABLES
 AC_PROG_CC
 AM_CONDITIONAL([WITH_GCC], [test "${GCC}" = "yes"])
 
+# TARGET_CFLAGS is placed in AM_CFLAGS allowing special flags to be
+# provided without affecting the toolchain default flags.
+AC_ARG_VAR([TARGET_CFLAGS],
+           [Target-specific flags added before standard CFLAGS variable])
+
 # Optionally build for multiple memory models for msp430
 ENABLE_MEMORY_MODELS=no
 AC_ARG_ENABLE([memory-models],
