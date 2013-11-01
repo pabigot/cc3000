@@ -2,8 +2,9 @@
 # mkdir m4
 # libtoolize --install --copy
 # automake --add-missing --copy
+# autoreconf
 
-AC_INIT([cc3000],[0.1.0])
+AC_INIT([cc3000],[1.11.1])
 AC_CONFIG_SRCDIR([include/cc3000/cc3000_common.h])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
