@@ -1,4 +1,4 @@
-Current CC3000 Service Pack: 1.11
+Current CC3000 Service Pack: 1.11.1
 
 This directory contains the master branch of
 https://github.com/pabigot/cc3000, which holds the CC3000 Host Driver
@@ -40,13 +40,13 @@ versioning, and cannot be identified at compile-time: it may only be
 obtained from a powered module by using the nvmem_read_sp_version() API.
 
 At this time the standard version identifier appears to be the Service Pack
-version, which is currently 1.11.  For each Service Pack there is a
+version, which is currently 1.11.1.  For each Service Pack there is a
 recommended version of the host driver application.  In this repository are
 tags recording the exact contents of these TI source releases.
 
-swrc263b : TI CC3000 Host Driver release recommended for SP 1.11.  This is
-the version currently merged into master.  It includes patches to support
-build with MSPGCC and to correct several upstream bugs.
+swrc263c : TI CC3000 Host Driver release recommended for SP 1.11.1.
+
+swrc263b : TI CC3000 Host Driver release recommended for SP 1.11.
 
 swrc263a : TI CC3000 Host Driver release recommended for SP 1.10.  This
 version was never directly integrated into the master branch.
