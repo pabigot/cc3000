@@ -637,6 +637,7 @@ GREP
 SED
 LIBTOOL
 MEMORY_MODELS
+TARGET_CFLAGS
 WITH_GCC_FALSE
 WITH_GCC_TRUE
 am__fastdepCC_FALSE
@@ -756,6 +757,7 @@ CFLAGS
 LDFLAGS
 LIBS
 CPPFLAGS
+TARGET_CFLAGS
 CPP'
 
 
@@ -1408,6 +1410,8 @@ Some influential environment variables:
   LIBS        libraries to pass to the linker, e.g. -l<library>
   CPPFLAGS    (Objective) C/C++ preprocessor flags, e.g. -I<include dir> if
               you have headers in a nonstandard directory <include dir>
+  TARGET_CFLAGS
+              Target-specific flags added before standard CFLAGS variable
   CPP         C preprocessor
 
 Use these variables to override the choices made by `configure' or to help
@@ -3819,6 +3823,10 @@ else
   WITH_GCC_TRUE='#'
   WITH_GCC_FALSE=
 fi
+
+
+# TARGET_CFLAGS is placed in AM_CFLAGS allowing special flags to be
+# provided without affecting the toolchain default flags.
 
 
 # Optionally build for multiple memory models for msp430
