@@ -79,7 +79,7 @@ am__installdirs = "$(DESTDIR)$(cc3000dir)"
 LTLIBRARIES = $(cc3000_LTLIBRARIES)
 libcc3000_la_LIBADD =
 am_libcc3000_la_OBJECTS = cc3000_common.lo evnt_handler.lo hci.lo \
-	netapp.lo nvmem.lo os.lo socket.lo wlan.lo security.lo
+	netapp.lo nvmem.lo socket.lo wlan.lo security.lo
 libcc3000_la_OBJECTS = $(am_libcc3000_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/build-aux/depcomp
@@ -223,7 +223,7 @@ AM_CFLAGS = $(TARGET_CFLAGS)
 cc3000dir = ${libdir}
 cc3000_LTLIBRARIES = libcc3000.la
 libcc3000_la_SOURCES = \
-	cc3000_common.c	evnt_handler.c hci.c netapp.c nvmem.c os.c \
+	cc3000_common.c	evnt_handler.c hci.c netapp.c nvmem.c \
 	socket.c wlan.c security.c
 
 all: all-am
@@ -305,7 +305,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hci.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/netapp.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nvmem.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/os.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/security.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/socket.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wlan.Plo@am__quote@

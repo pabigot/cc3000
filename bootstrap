@@ -1,0 +1,8 @@
+#!/bin/sh
+#
+# Regenerate the autotools infrastructure.
+
+mkdir -p m4
+libtoolize --install --copy
+automake --add-missing --copy
+autoreconf
