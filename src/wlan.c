@@ -588,7 +588,7 @@ INT32 wlan_add_profile(UINT32 ulSecType,
 	UINT8* ucPf_OrKey,
 	UINT32 ulPassPhraseLen)
 {
-	UINT16 arg_len;
+	UINT16 arg_len = 0;
 	INT32 ret;
 	UINT8 *ptr;
 	INT32 i = 0;
