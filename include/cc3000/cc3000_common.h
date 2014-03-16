@@ -37,6 +37,8 @@
 
 #include <cc3000/data_types.h>
 
+#include <cc3000/config.h>
+
 //******************************************************************************
 // Include files
 //******************************************************************************
@@ -159,6 +161,9 @@ extern "C" {
 //*****************************************************************************
 //                  Compound Types
 //*****************************************************************************
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#else /* HAVE_SYS_TIME_H */
 typedef INT32 time_t;
 typedef UINT32 clock_t;
 typedef INT32 suseconds_t;
@@ -170,6 +175,7 @@ struct timeval
     time_t         tv_sec;                  /* seconds */
     suseconds_t    tv_usec;                 /* microseconds */
 };
+#endif /* HAVE_SYS_TIME_H */
 
 typedef CHAR *(*tFWPatches)(UINT32 *usLength);
 

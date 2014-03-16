@@ -65,10 +65,13 @@ fi
 # Use libtool; no shared libraries for embedded platforms
 LT_INIT([disable-shared])
 
-# We generate config.h, so all the definitions autoconf would normally
-# pass on the compiler invocation are hidden in a file, but we don't
-# actually reference it.
-AC_CONFIG_HEADERS([config.h])
+# See whether we need to define the standard time structures
+AC_CHECK_HEADERS([sys/time.h time.h])
+
+# Put config.h down in the private area.  We need it to determine what
+# workaround structures need to be declared locally when libc doesn't
+# provide a suitable version.
+AC_CONFIG_HEADERS([include/cc3000/config.h])
 
 AC_CONFIG_FILES([Makefile src/Makefile include/cc3000/Makefile])
 
