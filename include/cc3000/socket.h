@@ -175,8 +175,8 @@ typedef struct
 #define ntohl                   htonl
 
 //Use in case of Big Endian only
-#define htons(A)     ((((UINT32)(A) & 0xff00) >> 8) | \
-                      (((UINT32)(A) & 0x00ff) << 8))
+#define htons(A)     ((((UINT16)(A) & 0xff00) >> 8) | \
+                      (((UINT16)(A) & 0x00ff) << 8))
 
 
 #define ntohs                   htons
