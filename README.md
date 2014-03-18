@@ -65,3 +65,22 @@ tags recording the exact contents of these TI source releases.
 
 Information on earlier releases present in the git repository can be found
 in the corresponding README.TXT at each revision on the master branch.
+
+Functional/API Changes from TI Release
+--------------------------------------
+
+The intent of the master branch of this repackaged version is to track
+as closely as possible the TI release.  However, when there are bugs
+that seriously impact its use, they will be fixed and the constant
+``CC3000_REPACKAGED_VERSION`` that has been added to
+``<cc3000/cc3000_common.h>`` updated.  This constant is a monotonically
+non-decreasing integer literal such as 20140318.
+
+For version 20140318, these upstream issues in SP 1.12 are fixed:
+
+* Ability to use ``#include <time.h>`` and ``#include <sys/time.h>`` by
+  not redefining required types when they are available from those files
+
+* The implementation of ``ntohs/htons`` in ``<cc3000/socket.h>`` has
+  been corrected to return a 16-bit rather than 32-bit value, to improve
+  code portability.
