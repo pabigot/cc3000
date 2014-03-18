@@ -39,6 +39,11 @@
 
 #include <cc3000/config.h>
 
+/** Defines the repackaged version number.  This can be used to detect
+ * API changes that occurred at different points in the history of the
+ * repackaged variant hosted at: https://github.com/pabigot/cc3000 */
+#define CC3000_REPACKAGED_VERSION 20140318
+
 //******************************************************************************
 // Include files
 //******************************************************************************
